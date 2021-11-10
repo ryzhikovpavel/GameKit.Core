@@ -51,6 +51,13 @@ namespace GameKit
             Application.focusChanged += OnApplicationFocus;
         }
 
+        public static RoutineHandler Run(IEnumerator routine)
+        {
+            var r = new RoutineHandler(routine);
+            StartCoroutine(r.Run());
+            return r;
+        }
+
         public static void StartCoroutine(IEnumerator enumerator)
         {
             if (IsStarted)

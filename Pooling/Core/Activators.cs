@@ -25,4 +25,32 @@ namespace GameKit.Pooling
         public T CreateInstance() => _create();
         public void Reset(T item) { }
     }
+    
+    internal class PrefabPoolItemHandler<T> : IPoolItemHandler<T> where T: Component
+    {
+        private T _prefab;
+        private Transform _root;
+
+        public PrefabPoolItemHandler(T prefab, Transform root = null)
+        {
+            _prefab = prefab;
+            _root = root;
+        }
+        
+        public T CreateInstance()
+        {
+            GameObject go = Object.Instantiate(_prefab.gameObject, _root) as GameObject;
+            return go.GetComponent<T>();
+        }
+
+        public void Reset(T item)
+        {
+            var t = item.transform;
+            
+            if (_root != null) t.SetParent(_root);
+            t.localPosition = Vector3.zero;
+            t.localScale = _prefab.transform.localScale;
+            t.localRotation = _prefab.transform.localRotation;
+        }
+    }
 }

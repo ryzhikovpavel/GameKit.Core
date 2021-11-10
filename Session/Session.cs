@@ -4,15 +4,7 @@ using GameKit.Core.Session;
 
 namespace GameKit
 {
-    public static class Session
-    {
-        public static T Get<T>() where T : class => Session<T>.Get();
-    }
-}
-
-namespace GameKit.Core.Session
-{
-    internal static class Session<T> where T: class
+    public static class Session<T> where T: class
     {
         private static T _value;
         
@@ -28,13 +20,13 @@ namespace GameKit.Core.Session
         
         private static void Initialize()
         {
-            _value = Service<ISessionProvider>.Get().Load<T>(typeof(T).Name);
-            Service<ISessionProvider>.Get().EventSave += Save;
+            _value = Service<ISessionProvider>.Instance.Load<T>(typeof(T).Name);
+            Service<ISessionProvider>.Instance.EventSave += Save;
         }
 
         private static void Save()
         {
-            Service<ISessionProvider>.Get().Save(typeof(T).Name, _value);
+            Service<ISessionProvider>.Instance.Save(typeof(T).Name, _value);
         }
     }
 }

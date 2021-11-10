@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -58,3 +59,4 @@ namespace GameKit.Editor.Drawers
         protected abstract void GetItems(out string[] items, out bool needEmpty);
     }
 }
+#endif

@@ -8,8 +8,28 @@ using Object = UnityEngine.Object;
 namespace GameKit
 {
     [Serializable]
-    public class PoolSerializable<T>: IPool<T>, IPoolItemHandler<T> where T: Component
+    public class PoolSerializable<T>: IPool<T> where T: Component
     {
+        private class PoolItemHandler: IPoolItemHandler<T> 
+        {
+            T IPoolItemHandler<T>.CreateInstance()
+            {
+                return _owner.CreateInstance();
+            }
+
+            void IPoolItemHandler<T>.Reset(T item)
+            {
+                _owner.ResetInstance(item);
+            }
+
+            private PoolSerializable<T> _owner;
+            
+            public PoolItemHandler(PoolSerializable<T> owner)
+            {
+                _owner = owner;
+            }
+        }
+        
         private enum PrefabOption
         {
             Ignore,
@@ -26,10 +46,10 @@ namespace GameKit
         [SerializeField] private PrefabOption entityRotate = PrefabOption.Reset;
         [SerializeField] private bool activateOnPull = true;
         private Pool<T> _pool;
-        
+        private Transform _parent;
         
         public event Action<T> EventReset = delegate {};
-        public Transform Root => root;
+        public Transform Root => _parent ? _parent : root;
         public T Prefab => prefab;
 
         public void Push(IPoolEntity entity)
@@ -58,30 +78,57 @@ namespace GameKit
         {
             GetPool().Initialize(capacity);
         }
+        
+        // ReSharper disable once ParameterHidesMember
+        public void Initialize(Transform root)
+        {
+            this._parent = root;
+        }
+        
+        // ReSharper disable once ParameterHidesMember
+        public void Initialize(int capacity, Transform root)
+        {
+            this._parent = root;
+            GetPool().Initialize(capacity);
+        }
 
         private Pool<T> GetPool()
         {
-            if (_pool == null) _pool = new Pool<T>(this);
+            if (_pool == null)
+            {
+                _parent = root;
+                _pool = Pool.Build(new PoolItemHandler(this));
+                if (_parent == null)
+                {
+                    var go = new GameObject($"pool_root_for_{typeof(T).Name}");
+                    _parent = go.transform;
+                }
+            }
             return _pool;
         }
-        
-        T IPoolItemHandler<T>.CreateInstance()
+
+        private void OnDestroy()
         {
-            GameObject go = Object.Instantiate(prefab.gameObject) as GameObject;
+            Object.Destroy(_parent);
+        }
+
+        private T CreateInstance()
+        {
+            GameObject go = Object.Instantiate(prefab.gameObject, _parent) as GameObject;
             return go.GetComponent<T>();
         }
 
-        void IPoolItemHandler<T>.Reset(T item)
+        private void ResetInstance(T item)
         {
             var t = item.transform;
             
-            if (root != null) t.SetParent(root);
+            if (_parent is null == false) t.SetParent(_parent);
             t.localPosition = Vector3.zero;
             if (entityScale != PrefabOption.Ignore)
                 t.localScale = entityScale == PrefabOption.Reset ? Vector3.one : prefab.transform.localScale;
             if (entityRotate != PrefabOption.Ignore)
                 t.localRotation = entityRotate == PrefabOption.Reset ? Quaternion.identity : prefab.transform.localRotation;
-            
+            item.Event().Clear();
             EventReset(item);
         }
         

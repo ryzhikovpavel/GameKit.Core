@@ -4,8 +4,8 @@ namespace GameKit.Pooling.Core
 {
     public interface IPoolEntity
     {
-        int Id { get; internal set; }
-        IPoolContainer Owner { get; internal set; }
+        int Id { get; set; }
+        IPoolContainer Owner { get; set; }
         void Reset();
     }
 }

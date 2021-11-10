@@ -33,8 +33,8 @@ namespace GameKit.Core.Session
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Registration()
         {
-            if (Service.GetState<ISessionProvider>() == Service.State.Unknown)
-                Service.BindImplementation<ISessionProvider, SessionProviderAsPlayerPrefs>();
+            if (Service<ISessionProvider>.IsRegistered == false)
+                Service<ISessionProvider>.Bind<SessionProviderAsPlayerPrefs>();
         }
     }
 }

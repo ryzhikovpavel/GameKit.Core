@@ -8,18 +8,26 @@ using Object = UnityEngine.Object;
 
 namespace GameKit
 {
+    public static class Pool
+    {
+        public static Pool<T> Build<T>(Func<T> instantiate, Action<T> reset = null)  where T: class =>
+            new Pool<T>(new FuncPoolItemHandler<T>(instantiate, reset));
+        public static Pool<T> Build<T>(T prefab, Transform root = null) where T : Component =>
+            new Pool<T>(new PrefabPoolItemHandler<T>(prefab, root));
+        public static Pool<T> Build<T>() where T: class => new Pool<T>(new PoolItemHandler<T>());
+        public static Pool<T> Build<T>(IPoolItemHandler<T> poolItemHandler) where T: class => new Pool<T>(poolItemHandler);
+    }
+    
     public class Pool<T> : IPool<T>, IDisposable where T: class
     {
         private readonly List<PoolItem<T>> _items = new List<PoolItem<T>>();
         private readonly IPoolItemHandler<T> _poolItemHandler;
 
+        public event Action<T> EventReset =delegate { };
         public int IssuedCount { get; private set; }
         public int PooledCount => _items.Count - IssuedCount;
-
         
-        public Pool(Func<T> instantiate, Action<T> reset = null): this(new FuncPoolItemHandler<T>(instantiate, reset)) { }
-        public Pool(): this(new PoolItemHandler<T>()) { }
-        public Pool(IPoolItemHandler<T> poolItemHandler)
+        internal Pool(IPoolItemHandler<T> poolItemHandler)
         {
             this._poolItemHandler = poolItemHandler;
         }
@@ -34,6 +42,11 @@ namespace GameKit
         }
 
         public T Pull()
+        {
+            T item = PullInternal();
+            return item;
+        }
+        private T PullInternal()
         {
             foreach (var item in _items)
             {
@@ -54,8 +67,8 @@ namespace GameKit
         public void PushInstance(T instance)
         {
             var item = new PoolItem<T>(instance, _items.Count, this);
-            item.Entity.Reset();
-            _poolItemHandler.Reset(item.Instance);
+            
+            Reset(item);
             _items.Add(item);
         }
 
@@ -64,6 +77,7 @@ namespace GameKit
             var item = _items[entity.Id];
             item.State = PoolItemState.Pooled;
             IssuedCount--;
+            
             GameObject gameObject;
             if (item.Instance is Component comp)
                 gameObject = comp.gameObject;
@@ -73,8 +87,7 @@ namespace GameKit
             if (gameObject != null)
                 gameObject.SetActive(false);
             
-            item.Entity.Reset();
-            _poolItemHandler.Reset(item.Instance);
+            Reset(item);
         }
 
         public void ReleaseAll()
@@ -100,17 +113,22 @@ namespace GameKit
                 {
                     item = new PoolItem<T>(instance, i, this);
                     _items[i] = item;
-                    item.Entity.Reset();
-                    _poolItemHandler.Reset(item.Instance);
+                    Reset(item);
                     return item;
                 }
             }
 
             item = new PoolItem<T>(instance, _items.Count, this);
             _items.Add(item);
+            Reset(item);
+            return item;
+        }
+
+        private void Reset(PoolItem<T> item)
+        {
             item.Entity.Reset();
             _poolItemHandler.Reset(item.Instance);
-            return item;
+            EventReset(item.Instance);
         }
 
         public void Dispose()

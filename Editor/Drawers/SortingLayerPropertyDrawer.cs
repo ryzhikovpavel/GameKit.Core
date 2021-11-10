@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿#if UNITY_EDITOR
+using System.Reflection;
 using GameKit.Attributes;
 using UnityEditor;
 using UnityEngine;
@@ -42,3 +43,4 @@ namespace GameKit.Editor.Drawers
         }       
     }
 }
+#endif
