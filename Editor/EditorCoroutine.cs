@@ -4,7 +4,7 @@ using System.Collections;
 using UnityEditor;
 using UnityEngine;
 
-namespace GameKit.Editor
+namespace GameKit.Core.Editor
 {
     public class EditorCoroutine: IEnumerator
     {
