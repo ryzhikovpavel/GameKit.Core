@@ -29,8 +29,8 @@ namespace GameKit.Ads.Processors
         
         private IEnumerator RepeatProcess(AdsPlacement placement, IAdRequestData request, IEnumerable<IAdUnit> units)
         {
-            if (Service<AdsMediator>.Logger.IsDebugAllowed) 
-                Service<AdsMediator>.Logger.Debug($"{placement.Name}|Start repeating process");
+            if (Logger<AdsMediator>.IsDebugAllowed) 
+                Logger<AdsMediator>.Debug($"{placement.Name}|Start repeating process");
             
             while (IsActive)
             {
@@ -40,8 +40,8 @@ namespace GameKit.Ads.Processors
                     continue;
                 }
                 
-                if (Service<AdsMediator>.Logger.IsDebugAllowed) 
-                    Service<AdsMediator>.Logger.Debug($"{placement.Name}|Request show unit");
+                if (Logger<AdsMediator>.IsDebugAllowed) 
+                    Logger<AdsMediator>.Debug($"{placement.Name}|Request show unit");
                 
                 // ReSharper disable once PossibleMultipleEnumeration
                 base.Show(placement, request, units);
@@ -49,8 +49,8 @@ namespace GameKit.Ads.Processors
                 if (request is IAdUpdateFrequencyRequestData data && data.UpdateFrequency > _timeRemaining)
                     _timeRemaining = data.UpdateFrequency;
 
-                if (Service<AdsMediator>.Logger.IsDebugAllowed) 
-                    Service<AdsMediator>.Logger.Debug($"{placement.Name}|Wait {_timeRemaining} seconds for update ad unit");
+                if (Logger<AdsMediator>.IsDebugAllowed) 
+                    Logger<AdsMediator>.Debug($"{placement.Name}|Wait {_timeRemaining} seconds for update ad unit");
 
                 while (_timeRemaining > 0 && _unit is null == false)
                 {
@@ -58,14 +58,14 @@ namespace GameKit.Ads.Processors
                     _timeRemaining -= Time.deltaTime;
                 }
                 
-                if (Service<AdsMediator>.Logger.IsDebugAllowed) 
-                    Service<AdsMediator>.Logger.Debug($"{placement.Name}|Request hide unit");
+                if (Logger<AdsMediator>.IsDebugAllowed) 
+                    Logger<AdsMediator>.Debug($"{placement.Name}|Request hide unit");
                 if (_unit is null == false) _unit.Hide();
                 if (_unit is null == false) yield return null;
             }
             
-            if (Service<AdsMediator>.Logger.IsDebugAllowed) 
-                Service<AdsMediator>.Logger.Debug($"{placement.Name}|Stop repeating process");
+            if (Logger<AdsMediator>.IsDebugAllowed) 
+                Logger<AdsMediator>.Debug($"{placement.Name}|Stop repeating process");
         }
 
         protected override bool SetupUnit(IAdUnit unit, IAdRequestData request)

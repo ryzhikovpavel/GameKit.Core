@@ -2,6 +2,7 @@
 using System.IO;
 using GameKit.Ads.Units;
 using JetBrains.Annotations;
+using UnityEngine;
 
 namespace GameKit.Ads.Placements
 {
@@ -24,12 +25,14 @@ namespace GameKit.Ads.Placements
         public virtual void Show()
         {
             if (IsAvailable == false) return;
-            if (IsFetched == false) throw new Exception("Ad units not loaded");
+            if (IsFetched == false)return;
             Service<AdsMediator>.Instance.Show(this, null);
         }
 
         public virtual void Show(Action completed)
         {
+            if (IsAvailable == false) throw new Exception("Ad units not available");
+            if (IsFetched == false) throw new Exception("Ad units not loaded");
             _completed = completed;
             Show();
         }
@@ -38,6 +41,7 @@ namespace GameKit.Ads.Placements
         {
             _completed?.Invoke();
             _completed = null;
+            _lastDisplayedTime = DateTime.Now;
         }
         
         private void OnFailed(AdsPlacement placement, string error)

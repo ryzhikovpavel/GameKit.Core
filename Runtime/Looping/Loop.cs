@@ -26,7 +26,7 @@ namespace GameKit
         public static event Action EventFixedUpdate = delegate { };
         public static event Action EventEndFrame = delegate { };
 
-        public static bool IsStarted => _unityLoop != null;
+        public static bool IsStarted => _unityLoop is null == false;
         public static bool IsPaused { get; private set; }
         public static bool IsQuitting { get; private set; }
 

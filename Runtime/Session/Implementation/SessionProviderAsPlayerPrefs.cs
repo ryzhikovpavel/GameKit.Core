@@ -8,17 +8,16 @@ namespace GameKit.Implementation
     {
         public event Action EventSave;
 
-        public T Load<T>(string name)
+        public T Load<T>(string group, string name)
         {
-            return JsonUtility.FromJson<T>(PlayerPrefs.GetString(name, "{}"));
+            return JsonUtility.FromJson<T>(PlayerPrefs.GetString($"{group}_{name}", "{}"));
         }
 
-        public void Save<T>(string name, T data)
+        public void Save<T>(string group, string name, T data)
         {
-            PlayerPrefs.SetString(name, JsonUtility.ToJson(data));
+            PlayerPrefs.SetString($"{group}_{name}", JsonUtility.ToJson(data));
         }
         
-
         public SessionProviderAsPlayerPrefs()
         {
             Loop.EventSuspend += LoopOnEventSuspend;

@@ -1,7 +1,7 @@
 #if UNITY_ANDROID && !UNITY_EDITOR
-using PlatformLocaleProvider =GameKit.Core.CountryCode.Implementation.AndroidLocaleProvider;
+using PlatformLocaleProvider = GameKit.Implementation.AndroidLocaleProvider;
 #elif UNITY_IPHONE && !UNITY_EDITOR
-using PlatformLocaleProvider = GameKit.Core.CountryCode.Implementation.IOSLocaleProvider;
+using PlatformLocaleProvider = GameKit.Implementation.IOSLocaleProvider;
 #else
 using PlatformLocaleProvider = GameKit.Implementation.DefaultLocaleProvider;
 #endif

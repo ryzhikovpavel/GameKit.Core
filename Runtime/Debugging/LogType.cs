@@ -11,6 +11,7 @@ namespace GameKit
         Warning = 4,
         Error = 8,
         
+        Normal = Info | Warning | Error,
         Important = Warning | Error,
         All = Debug | Info | Warning | Error 
     }

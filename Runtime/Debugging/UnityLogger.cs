@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using UnityEngine;
 
 namespace GameKit
 {
-    public class UnityLogger : ILogger
+    internal class UnityLogger : ILogger
     {
         private readonly string _environment;
         

@@ -5,7 +5,7 @@ namespace GameKit
     public interface ISessionProvider
     {
         event Action EventSave;
-        T Load<T>(string name);
-        void Save<T>(string name, T data);
+        T Load<T>(string group, string name);
+        void Save<T>(string group, string name, T data);
     }
 }

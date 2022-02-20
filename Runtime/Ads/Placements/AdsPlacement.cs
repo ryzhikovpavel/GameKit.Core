@@ -15,9 +15,21 @@ namespace GameKit.Ads.Placements
         public event AdsInfoEventHandler EventClicked = delegate { };
         
         public readonly string Name;
+        
+        /// <summary>
+        /// Advertising is loaded and ready to displayed
+        /// </summary>
         public bool IsFetched { get; private set; }
-
+        
+        /// <summary>
+        /// Advertising meets the conditions of display
+        /// </summary>
         public virtual bool IsAvailable => true;
+        
+        /// <summary>
+        /// IsFetched && IsAvailable
+        /// </summary>
+        public bool IsReady => IsFetched && IsAvailable;
 
         protected AdsPlacement(string name)
         {

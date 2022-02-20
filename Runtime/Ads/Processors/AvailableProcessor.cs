@@ -37,7 +37,7 @@ namespace GameKit.Ads.Processors
         {
             foreach (var unit in _units)
             {
-                if (unit.IsLoaded)
+                if (unit.State == AdUnitState.Loaded)
                 {
                     return true;
                 }

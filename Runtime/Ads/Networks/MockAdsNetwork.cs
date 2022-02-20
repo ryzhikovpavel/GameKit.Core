@@ -12,10 +12,12 @@ namespace GameKit.Ads.Networks
         private readonly Dictionary<Type, IAdUnit[]> _units = new Dictionary<Type,  IAdUnit[]>();
 
         public bool IsInitialized { get; private set; }
-        
+        public bool IsValid { get; private set; }
+
         public void Initialize(bool trackingConsent, bool purchasedDisableUnits)
         {
             IsInitialized = true;
+            IsValid = true;
             MockCanvas canvas = UnityEngine.Object.Instantiate(Resources.Load<MockCanvas>("MockAdsNetworkCanvas"));
             _units.Add(typeof(IAnchoredBannerAdUnit), new IAdUnit[] {new MockAnchoredAdUnit(canvas)});
             _units.Add(typeof(IRewardedVideoAdUnit), new IAdUnit[] {new MockRewardedVideo(canvas)});
@@ -172,6 +174,6 @@ namespace GameKit.Ads.Networks
         }
 
         public bool IsEarned { get; private set; }
-        public IRewardAdInfo Reward { get; } = new DefaultRewardAdInfo();
+        public IRewardAdInfo Reward { get; set; } = new DefaultRewardAdInfo(0, "");
     }
 }

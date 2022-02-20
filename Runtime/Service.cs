@@ -7,16 +7,9 @@ namespace GameKit
     {
         private static Func<T> _resolve;
         private static T _instance;
-        private static ILogger _logger;
-
         public static event Action EventInstantiated;
-
-        public static ILogger Logger
-        {
-            get => _logger ??= new UnityLogger(typeof(T).Name, LogType.Error | LogType.Warning);
-            set => _logger = value;
-        }
-
+        
+        
         public static T Instance
         {
             get
@@ -48,9 +41,9 @@ namespace GameKit
             // ReSharper disable once ConvertClosureToMethodGroup
             Bind(()=>Service<TDerived>.Instance);
         }
-
+                                                                                                    
         public static bool IsRegistered => !(_instance is null && _resolve is null);
-        public static bool IsInstantiated => !(_instance is null);
+        public static bool IsInstantiated => !(_instance is null);                                  
 
         public static void Instantiate()
         {
