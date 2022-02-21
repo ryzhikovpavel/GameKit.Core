@@ -107,7 +107,7 @@ namespace GameKit.Ads
             
             foreach (var network in _networks)
             {
-                if (network.IsValid)
+                if (network.IsValid && network.IsSupported(unitType))
                     units.AddRange(network.GetUnits(unitType));
             }
         }
