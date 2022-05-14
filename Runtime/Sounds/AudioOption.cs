@@ -4,29 +4,37 @@ using UnityEngine;
 namespace GameKit
 {
     [Serializable]
-    public class AudioOption
+    public struct AudioOptions
     {
+        private static readonly int AudioChannelCount = Enum.GetValues(typeof(AudioChannel)).Length;
+
         [SerializeField] private bool[] channelMuted;
 
         public bool IsMuted(AudioChannel channel)
         {
-            var index = (int)channel;
-            if (index >= channelMuted.Length)
-                Array.Resize(ref channelMuted, index + 1);
-            return channelMuted[index];
+            CheckAndFixChannelArray();
+            return channelMuted[(int)channel];
         }
         
         public void ChangeMute(AudioChannel channel, bool value)
         {
-            var index = (int)channel;
-            if (index >= channelMuted.Length)
-                Array.Resize(ref channelMuted, index + 1);
-            channelMuted[index] = value;
+            CheckAndFixChannelArray();
+            channelMuted[(int)channel] = value;
         }
 
-        public AudioOption()
+        private void CheckAndFixChannelArray()
         {
-            channelMuted = new bool[Enum.GetValues(typeof(AudioChannel)).Length];
+            if (channelMuted is null)
+            {
+                channelMuted = new bool[AudioChannelCount];
+                return;
+            }
+
+            if (channelMuted.Length != AudioChannelCount)
+            {
+                Array.Resize(ref channelMuted, AudioChannelCount);
+                return;
+            }
         }
     }
 }

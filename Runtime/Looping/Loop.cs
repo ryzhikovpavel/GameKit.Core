@@ -50,14 +50,7 @@ namespace GameKit
             
             Application.focusChanged += OnApplicationFocus;
         }
-
-        public static RoutineHandler Run(IEnumerator routine)
-        {
-            var r = new RoutineHandler(routine);
-            StartCoroutine(r.Run());
-            return r;
-        }
-
+        
         public static void StartCoroutine(IEnumerator enumerator)
         {
             if (IsStarted)
@@ -79,6 +72,17 @@ namespace GameKit
             if (_coRoutines == null) return;
             int idx = _coRoutines.IndexOf(enumerator);
             if (idx >= 0) _coRoutines.RemoveAt(idx);
+        }
+
+        public static void InvokeDelayed(float delaySeconds, Action load)
+        {
+            StartCoroutine(Delayd(delaySeconds, load));
+        }
+
+        private static IEnumerator Delayd(float delaySeconds, Action load)
+        {
+            yield return new WaitForSeconds(delaySeconds);
+            load?.Invoke();
         }
 
         private static void OnApplicationEventPause(bool pause)

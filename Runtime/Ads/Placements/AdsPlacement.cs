@@ -7,15 +7,18 @@ namespace GameKit.Ads.Placements
     [PublicAPI]
     public abstract class AdsPlacement
     {
+        protected ILogger Logger = Logger<AdsMediator>.Instance;
+
         public event AdsEventHandler EventNoFill = delegate { };
         public event AdsEventHandler EventFetched = delegate { };
         public event AdsInfoEventHandler EventDisplayed = delegate { };
         public event AdsEventHandler EventClosed = delegate { };
         public event AdsErrorEventHandler EventFailed = delegate { };
         public event AdsInfoEventHandler EventClicked = delegate { };
-        
+
         public readonly string Name;
-        
+        public string DebugName { get; private set; }
+
         /// <summary>
         /// Advertising is loaded and ready to displayed
         /// </summary>
@@ -34,47 +37,54 @@ namespace GameKit.Ads.Placements
         protected AdsPlacement(string name)
         {
             Name = name;
-            Service<AdsMediator>.Instance.RegisterPlacement(this);
+            DebugName = name;
+            Loop.InvokeDelayed(0, Initialize);
         }
 
+        private void Initialize()
+        {
+            if (DebugName.IsNullOrEmpty()) DebugName = UnitType.Name;
+            Service<AdsMediator>.Instance.RegisterPlacement(this);
+        }
+        
         internal void DispatchFetched()
         {
             IsFetched = true;
+            if (Logger.IsDebugAllowed) Logger.Debug($"{DebugName} is fetched");
             EventFetched(this);
         }
 
         internal void DispatchNoFill()
         {
             IsFetched = false;
+            if (Logger.IsDebugAllowed) Logger.Debug($"{DebugName} is no fill");
             EventNoFill(this);
         }
 
         internal void DispatchDisplayed(IAdInfo info)
         {
+            if (Logger.IsDebugAllowed) Logger.Debug($"{DebugName} is displayed");
             EventDisplayed(this, info);
         }
 
         internal void DispatchClosed()
         {
+            if (Logger.IsDebugAllowed) Logger.Debug($"{DebugName} is closed");
             EventClosed(this);
         }
 
         internal void DispatchFailed(string error)
         {
+            if (Logger.IsDebugAllowed) Logger.Debug($"{DebugName} is failed");
             EventFailed(this, error);
         }
 
         internal void DispatchClicked(IAdInfo info)
         {
+            if (Logger.IsDebugAllowed) Logger.Debug($"{DebugName} is clocked");
             EventClicked(this, info);
         }
         
-        public abstract Type GetUnitType();
-    }
-
-    public abstract class AdsPlacement<TUnit>: AdsPlacement where TUnit : IAdUnit
-    {
-        public override Type GetUnitType() => typeof(TUnit);
-        protected AdsPlacement(string name) : base(name) { }
+        [NotNull] public abstract Type UnitType { get; }
     }
 }

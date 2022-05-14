@@ -7,14 +7,16 @@ using UnityEngine;
 namespace GameKit.Ads.Placements
 {
     [PublicAPI]
-    public class AdsInterstitialPlacement: AdsPlacement<IInterstitialAdUnit>
+    public class AdsInterstitialPlacement: AdsPlacement
     {
         private float _frequencyCapping;
         private DateTime _lastDisplayedTime;
         private Action _completed; 
         
         public override bool IsAvailable => (DateTime.Now - _lastDisplayedTime).TotalSeconds >= _frequencyCapping;
-        
+        public override Type UnitType { get; } = typeof(IInterstitialAdUnit);
+
+        public AdsInterstitialPlacement(float frequencyCapping) : this(null, frequencyCapping) { }
         public AdsInterstitialPlacement(string name, float frequencyCapping) : base(name)
         {
             _frequencyCapping = frequencyCapping;
@@ -26,7 +28,7 @@ namespace GameKit.Ads.Placements
         {
             if (IsAvailable == false) return;
             if (IsFetched == false)return;
-            Service<AdsMediator>.Instance.Show(this, null);
+            Service<AdsMediator>.Instance.Show(this);
         }
 
         public virtual void Show(Action completed)

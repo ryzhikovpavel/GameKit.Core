@@ -9,8 +9,10 @@ namespace GameKit
     {
         private readonly Pool<AudioInstance> _instances;
         private readonly Transform _root;
+        private readonly ISession<AudioOptions> _session = Session.Resolve<AudioOptions>(Session.Groups.UnityPlayerPrefs);
 
         public event Action EventChannelMutedChanged;
+        
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Initialize()
@@ -28,11 +30,13 @@ namespace GameKit
             _instances.Initialize(25);
         }
 
-        public bool IsMuted(AudioChannel channel) => Session<AudioOption>.Get().IsMuted(channel);
+        public bool IsMuted(AudioChannel channel) => _session.Get().IsMuted(channel);
 
         public void SetMute(AudioChannel channel, bool mute)
         {
-            Session<AudioOption>.Get().ChangeMute(channel, mute);
+            var options = _session.Get();
+            options.ChangeMute(channel, mute);
+            _session.Save(ref options);
             foreach (var instance in _instances)
                 if (instance.Channel == channel) instance.SetMute(mute);
 

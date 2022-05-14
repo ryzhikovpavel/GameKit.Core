@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using GameKit.Ads.Placements;
-using GameKit.Ads.Requests;
 using GameKit.Ads.Units;
 using JetBrains.Annotations;
 
@@ -11,29 +10,32 @@ namespace GameKit.Ads.Processors
     [PublicAPI]
     public class DisplayProcessor
     {
-        public virtual void Show(AdsPlacement placement, IAdRequestData request, IEnumerable<IAdUnit> units)
+        public IAdUnit DisplayedUnit { get; private set; }
+        
+        public virtual void Show(AdsPlacement placement, IEnumerable<IAdUnit> units)
         {
-            Loop.StartCoroutine(ShowProcess(placement, request, units));
+            Loop.StartCoroutine(ShowProcess(placement, units));
         }
         
-        private IEnumerator ShowProcess(AdsPlacement placement, IAdRequestData request, IEnumerable<IAdUnit> units)
+        private IEnumerator ShowProcess(AdsPlacement placement, IEnumerable<IAdUnit> units)
         {
             if (FindLoaded(units, out var unit) == false)
             {
                 if (Logger<AdsMediator>.IsErrorAllowed) 
-                    Logger<AdsMediator>.Error($"{placement.Name}|Ad units not loaded. Request show break");
+                    Logger<AdsMediator>.Error($"{placement.DebugName}|Ad units not loaded. Request show break");
                 placement.DispatchFailed("Ad units not loaded. Request show break");
                 yield break;
             }
 
             if (Logger<AdsMediator>.IsDebugAllowed) 
-                Logger<AdsMediator>.Debug($"{placement.Name}|Ad unit found. Setup unit with request data and show");
+                Logger<AdsMediator>.Debug($"{placement.DebugName}|Ad unit found. Setup unit with request data and show");
             
-            if (SetupUnit(unit, request) == false) yield break;
+            DisplayedUnit = unit;
+            if (SetupUnit(unit) == false) yield break;
             
             placement.DispatchDisplayed(unit.Info);
             if (Logger<AdsMediator>.IsDebugAllowed) 
-                Logger<AdsMediator>.Debug($"{placement.Name}|Ad unit displayed");
+                Logger<AdsMediator>.Debug($"{placement.DebugName}|Ad unit displayed");
             
             unit.Show();
             
@@ -43,7 +45,7 @@ namespace GameKit.Ads.Processors
             if (unit.State == AdUnitState.Error)
             {
                 if (Logger<AdsMediator>.IsErrorAllowed) 
-                    Logger<AdsMediator>.Error($"{placement.Name}|Ad unit error: {unit.Error}");
+                    Logger<AdsMediator>.Error($"{placement.DebugName}|Ad unit error: {unit.Error}");
                 placement.DispatchFailed(unit.Error);
                 yield break;
             }
@@ -51,38 +53,26 @@ namespace GameKit.Ads.Processors
             if (unit.State == AdUnitState.Clicked)
             {
                 if (Logger<AdsMediator>.IsDebugAllowed) 
-                    Logger<AdsMediator>.Debug($"{placement.Name}|Ad unit clicked");
+                    Logger<AdsMediator>.Debug($"{placement.DebugName}|Ad unit clicked");
                 placement.DispatchClicked(unit.Info);
             }
 
             if (unit.State is AdUnitState.Closed or AdUnitState.Clicked == false)
             {
                 if (Logger<AdsMediator>.IsWarningAllowed) 
-                    Logger<AdsMediator>.Warning($"{placement.Name}|Ad unit state not closed or clicked. Current state: {unit.State}");
+                    Logger<AdsMediator>.Warning($"{placement.DebugName}|Ad unit state not closed or clicked. Current state: {unit.State}");
             }
             DoCloseAd(unit, placement);
             placement.DispatchClosed();
             if (Logger<AdsMediator>.IsDebugAllowed) 
-                Logger<AdsMediator>.Debug($"{placement.Name}|Ad unit closed");
+                Logger<AdsMediator>.Debug($"{placement.DebugName}|Ad unit closed");
             
             unit.Release();
+            DisplayedUnit = null;
         }
 
-        protected virtual bool SetupUnit(IAdUnit unit, IAdRequestData request)
+        protected virtual bool SetupUnit(IAdUnit unit)
         {
-            if (unit is IAnchoredBannerAdUnit anchorUnit)
-            {
-                if (request is IAdAnchorableRequestData anchorRequest)
-                {
-                    anchorUnit.SetAnchor(anchorRequest.Anchor);
-                }
-                else
-                {
-                    if (Logger<AdsMediator>.IsErrorAllowed) 
-                        Logger<AdsMediator>.Error($"RequestData|Anchor request data not found");
-                    return false;
-                }
-            }
             return true;
         }
 
@@ -93,13 +83,13 @@ namespace GameKit.Ads.Processors
                 if (rewardedUnit.IsEarned)
                 {
                     if (Logger<AdsMediator>.IsDebugAllowed) 
-                        Logger<AdsMediator>.Debug($"{placement.Name}|Ad rewarded unit earned");
+                        Logger<AdsMediator>.Debug($"{placement.DebugName}|Ad rewarded unit earned");
                     rewardedPlacement.DispatchEarned(rewardedUnit.Reward);
                 }
                 else
                 {
                     if (Logger<AdsMediator>.IsDebugAllowed) 
-                        Logger<AdsMediator>.Debug($"{placement.Name}|Ad rewarded unit skipped");
+                        Logger<AdsMediator>.Debug($"{placement.DebugName}|Ad rewarded unit skipped");
                     rewardedPlacement.DispatchSkipped();
                 }
             }
