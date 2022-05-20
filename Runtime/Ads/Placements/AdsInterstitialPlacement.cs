@@ -2,18 +2,21 @@
 using System.IO;
 using GameKit.Ads.Units;
 using JetBrains.Annotations;
+using UnityEngine;
 
 namespace GameKit.Ads.Placements
 {
     [PublicAPI]
-    public class AdsInterstitialPlacement: AdsPlacement<IInterstitialAdUnit>
+    public class AdsInterstitialPlacement: AdsPlacement
     {
         private float _frequencyCapping;
         private DateTime _lastDisplayedTime;
         private Action _completed; 
         
         public override bool IsAvailable => (DateTime.Now - _lastDisplayedTime).TotalSeconds >= _frequencyCapping;
-        
+        public override Type UnitType { get; } = typeof(IInterstitialAdUnit);
+
+        public AdsInterstitialPlacement(float frequencyCapping) : this(null, frequencyCapping) { }
         public AdsInterstitialPlacement(string name, float frequencyCapping) : base(name)
         {
             _frequencyCapping = frequencyCapping;
@@ -24,12 +27,14 @@ namespace GameKit.Ads.Placements
         public virtual void Show()
         {
             if (IsAvailable == false) return;
-            if (IsFetched == false) throw new Exception("Ad units not loaded");
-            Service<AdsMediator>.Instance.Show(this, null);
+            if (IsFetched == false)return;
+            Service<AdsMediator>.Instance.Show(this);
         }
 
         public virtual void Show(Action completed)
         {
+            if (IsAvailable == false) throw new Exception("Ad units not available");
+            if (IsFetched == false) throw new Exception("Ad units not loaded");
             _completed = completed;
             Show();
         }
@@ -38,6 +43,7 @@ namespace GameKit.Ads.Placements
         {
             _completed?.Invoke();
             _completed = null;
+            _lastDisplayedTime = DateTime.Now;
         }
         
         private void OnFailed(AdsPlacement placement, string error)

@@ -1,36 +1,100 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using DG.Tweening;
+using GameKit.Implementation;
 using JetBrains.Annotations;
 
 namespace GameKit
 {
     [PublicAPI]
-    public class AnalyticsEvent
+    public class AnalyticsEvent: IPoolEntity
     {
-        public const string EVENT_NAME_KEY = "name";
-        public Dictionary<string, object> EventData { get; private set; }
+        private const string EVENT_NAME_KEY = "name";
+        private const string ST1_NAME_KEY = "ST1";
+        private const string ST2_NAME_KEY = "ST2";
+        private const string ST3_NAME_KEY = "ST3";
+        
+        public Dictionary<string, object> EventData { get; private set; } = new Dictionary<string, object>(20);
 
-        internal AnalyticName[] Services;
+        internal string[] Services;
         internal bool IsExclusionList;
+        private int _id;
+        private IPoolContainer _owner;
 
-        public string EventName
+        public string GetFullEventName()
         {
-            get
+            var s = new StringBuilder();
+            if (EventData.TryGetValue(ST1_NAME_KEY, out var st1))
             {
-                if ( EventData != null && EventData.ContainsKey( EVENT_NAME_KEY ) )
-                {
-                    return EventData[EVENT_NAME_KEY] as string;
-                }
-
-                return string.Empty;
+                s.Append(st1);
+                s.Append("_");
             }
+            
+            if (EventData.TryGetValue(ST2_NAME_KEY, out var st2))
+            {
+                s.Append(st2);
+                s.Append("_");
+            }
+            
+            if (EventData.TryGetValue(ST3_NAME_KEY, out var st3))
+            {
+                s.Append(st3);
+                s.Append("_");
+            }
+
+            s.Append(EventName);
+            return s.ToString();
+        }
+        
+        public string EventName => GetStringValue(EVENT_NAME_KEY);
+
+        public string ST1
+        {
+            get => GetStringValue(ST1_NAME_KEY);
+            set => EventData[ST1_NAME_KEY] = value;
+        }
+        
+        public string ST2
+        {
+            get => GetStringValue(ST1_NAME_KEY);
+            set => EventData[ST1_NAME_KEY] = value;
+        }
+        
+        public string ST3
+        {
+            get => GetStringValue(ST1_NAME_KEY);
+            set => EventData[ST1_NAME_KEY] = value;
         }
         
         public static AnalyticsEvent Create( string eventName )
         {
             AssertNameValid(eventName);
             return Service<Analytics>.Instance.Pull().AddEventData(EVENT_NAME_KEY, eventName);
+        }
+        
+        public static AnalyticsEvent Create(string st1, string eventName)
+        {
+            var e = Create(eventName);
+            e.ST1 = st1;
+            return e;
+        }
+        
+        public static AnalyticsEvent Create(string st1, string st2, string eventName)
+        {
+            var e = Create(eventName);
+            e.ST1 = st1;
+            e.ST2 = st2;
+            return e;
+        }
+        
+        public static AnalyticsEvent Create(string st1, string st2, string st3, string eventName)
+        {
+            var e = Create(eventName);
+            e.ST1 = st1;
+            e.ST2 = st2;
+            e.ST3 = st3;
+            return e;
         }
 
         /// <summary>
@@ -110,14 +174,14 @@ namespace GameKit
             Service<Analytics>.Instance.Send(this);
         }
 
-        public void SendOnly(params AnalyticName[] analytics)
+        public void SendOnly(params string[] analytics)
         {
             Services = analytics;
             IsExclusionList = false;
             Send();
         }
 
-        public void SendWithout(params AnalyticName[] analytics)
+        public void SendWithout(params string[] analytics)
         {
             Services = analytics;
             IsExclusionList = true;
@@ -129,33 +193,56 @@ namespace GameKit
             Services = null;
             EventData.Clear();
         }
-        
+
+        private string GetStringValue(string key)
+        {
+            if (EventData is null) return string.Empty;
+            if (EventData.TryGetValue(key, out var value)) return (string)value;
+            return string.Empty;
+        }
+
         private static void AssertNameValid( string eventName )
         {
             if (string.IsNullOrEmpty(eventName))
             {
-                Service<Analytics>.Logger.Error( "[AnalyticsEvent] Event name can't be null or empty value" );
+                Logger<Analytics>.Error( "[AnalyticsEvent] Event name can't be null or empty value" );
                 throw new Exception("[AnalyticsEvent] Event name can't be null or empty value");
             }
         }
-        
+
         private AnalyticsEvent AddEventData( string name, object value )
         {
             if ( value is null )
             {
-                Service<Analytics>.Logger.Error( $"[AnalyticsEvent] Parameter can't be null. Parameter {name} won't be added." );
+                Logger<Analytics>.Error( $"[AnalyticsEvent] Parameter can't be null. Parameter {name} won't be added." );
                 return this;
             }
 
             if ( value is string str && string.IsNullOrEmpty(str))
             {
-                Service<Analytics>.Logger.Error( $"[AnalyticsEvent] String parameter can't be empty. Parameter {name} won't be added." );
+                Logger<Analytics>.Error( $"[AnalyticsEvent] String parameter can't be empty. Parameter {name} won't be added." );
                 return this;
             }
-
-            if ( EventData == null ) EventData = new Dictionary<string, object>(20);
+            
             EventData[name] = value;
             return this;
+        }
+
+        int IPoolEntity.Id
+        {
+            get => _id;
+            set => _id = value;
+        }
+
+        IPoolContainer IPoolEntity.Owner
+        {
+            get => _owner;
+            set => _owner = value;
+        }
+
+        void IPoolEntity.Reset()
+        {
+            EventData?.Clear();
         }
     }
 }

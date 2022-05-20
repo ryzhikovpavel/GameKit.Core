@@ -30,6 +30,19 @@ namespace GameKit.Implementation
         [NonSerialized] private Dictionary<string, Sprite> _dictionarySprites;
         [NonSerialized] private bool _initialized;
 
+        public bool rtl
+        {
+            get
+            {
+                switch (Language)
+                {
+                    case SystemLanguage.Arabic: return true;
+                    case SystemLanguage.Hebrew: return true;
+                    default: return false;
+                }
+            }
+        }
+        
         public bool Translate(string key, out string translation)
         {
             if (!_initialized) Initialize();

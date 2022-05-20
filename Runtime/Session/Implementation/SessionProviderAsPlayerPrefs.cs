@@ -1,40 +1,52 @@
-﻿using System;
+﻿using System.Text;
 using UnityEngine;
 
 namespace GameKit.Implementation
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    internal class SessionProviderAsPlayerPrefs : ISessionProvider
+    internal class SessionPlayerPrefsGroup : ISessionGroup
     {
-        public event Action EventSave;
+        public bool IsDirty { get; private set; }
 
         public T Load<T>(string name)
         {
             return JsonUtility.FromJson<T>(PlayerPrefs.GetString(name, "{}"));
         }
 
-        public void Save<T>(string name, T data)
+        public void Save<T>(string name, ref T data)
         {
             PlayerPrefs.SetString(name, JsonUtility.ToJson(data));
-        }
-        
-
-        public SessionProviderAsPlayerPrefs()
-        {
-            Loop.EventSuspend += LoopOnEventSuspend;
+            MarkDirty();
         }
 
-        private void LoopOnEventSuspend()
+        public void Remove(string name)
         {
-            EventSave?.Invoke();
+            if (PlayerPrefs.HasKey(name))
+            {
+                PlayerPrefs.DeleteKey(name);
+                MarkDirty();
+            }
+        }
+
+        public bool Contains(string name)
+        {
+            return PlayerPrefs.HasKey(name);
+        }
+
+        private void MarkDirty()
+        {
+            if (IsDirty == false)
+            {
+                Loop.EventEndFrame += Flush;
+                IsDirty = true;
+            }
+        }
+
+        public void Flush()
+        {
             PlayerPrefs.Save();
-        }
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void Registration()
-        {
-            if (Service<ISessionProvider>.IsRegistered == false)
-                Service<ISessionProvider>.Bind<SessionProviderAsPlayerPrefs>();
+            Loop.EventEndFrame -= Flush;
+            IsDirty = false;
         }
     }
 }

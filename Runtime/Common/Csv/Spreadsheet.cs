@@ -97,20 +97,22 @@ namespace GameKit.Csv
 
         public int GetColumnIndex(string key, int row = 0)
         {
+            key = key.ToLower();
             int len = _data.GetLength(0);
             for (int i = 0; i < len; i++)
             {
-                if (key == _data[i, row]) return i;
+                if (key == _data[i, row].ToLower()) return i;
             }
             return -1;
         }
 
         public int GetRowIndex(string key, int col = 0)
         {
+            key = key.ToLower();
             int len = _data.GetLength(1);
             for (int i = 0; i < len; i++)
             {
-                if (key == _data[col, i]) return i;
+                if (key == _data[col, i].ToLower()) return i;
             }
             return -1;
         }

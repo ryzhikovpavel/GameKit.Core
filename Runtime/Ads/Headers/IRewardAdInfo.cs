@@ -2,16 +2,19 @@
 {
     public interface IRewardAdInfo
     {
-        int Reward { get; }
+        string Type { get; }
+        double Reward { get; }
     }
 
     public struct DefaultRewardAdInfo : IRewardAdInfo
     {
-        public int Reward { get; }
+        public string Type { get; }
+        public double Reward { get; }
 
-        public DefaultRewardAdInfo(int reward)
+        public DefaultRewardAdInfo(double reward, string type)
         {
             Reward = reward;
+            Type = type;
         }
     }
 }

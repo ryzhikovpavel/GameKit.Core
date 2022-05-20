@@ -3,8 +3,8 @@
 namespace GameKit.Ads
 {
     [Serializable]
-    public class AdsSession
+    public struct AdsSession
     {
-        public bool purchasedDisableUnits;
+        public bool disableIntrusiveAdUnits;
     }
 }

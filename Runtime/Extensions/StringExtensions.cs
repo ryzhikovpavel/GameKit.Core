@@ -5,6 +5,16 @@ namespace GameKit
 {
     public static class StringExtensions
     {
+        public static bool IsNullOrEmpty(this string str)
+        {
+            return string.IsNullOrEmpty(str);
+        }
+
+        public static bool IsNotEmpty(this string str)
+        {
+            return string.IsNullOrEmpty(str) == false;
+        }
+        
 		public static string ReplaceFirst(this string text, string search, string replace)
         {
             int pos = text.IndexOf(search);

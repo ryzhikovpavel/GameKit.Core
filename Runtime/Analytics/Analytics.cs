@@ -33,7 +33,7 @@ namespace GameKit
                     if (@event.IsExclusionList) send = !send;
                 }
                 if (send)
-                    analytic.LogEvent(@event.EventData);
+                    analytic.LogEvent(@event);
             }
             _eventsPool.PushInstance(@event);
         }
@@ -48,11 +48,5 @@ namespace GameKit
                 }
             }
         }
-    }
-
-    public interface IAnalytic
-    {
-        AnalyticName Name { get; }
-        void LogEvent(Dictionary<string, object> values);
     }
 }

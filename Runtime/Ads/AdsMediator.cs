@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using GameKit.Ads.Networks;
 using GameKit.Ads.Placements;
 using GameKit.Ads.Processors;
-using GameKit.Ads.Requests;
 using GameKit.Ads.Units;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -17,9 +16,10 @@ namespace GameKit.Ads
     {
         private Dictionary<Type, List<IAdUnit>> _typedUnits = new Dictionary<Type, List<IAdUnit>>();
         private Dictionary<Type, DisplayProcessor> _displayProcessors = new Dictionary<Type, DisplayProcessor>(3);
-        private List<AvailableProcessor> _availableProcessors = new List<AvailableProcessor>(3);
-        private List<IAdsNetwork> _networks;
-        
+        private List<AvailableProcessor> _availableProcessors = new  List<AvailableProcessor>(3);
+        private List<IAdsNetwork> _networks = new List<IAdsNetwork>();
+        private ISession<AdsSession> _session = Session.Resolve<AdsSession>(Session.Groups.UnityPlayerPrefs);
+
         public event AdsEventHandler EventNoFill = delegate { };
         public event AdsEventHandler EventFetched = delegate { };
         public event AdsInfoEventHandler EventDisplayed = delegate { };
@@ -28,51 +28,59 @@ namespace GameKit.Ads
         public event AdsErrorEventHandler EventFailed = delegate { };
         public event AdsRewardInfoEventHandler EventEarned = delegate { };
         public event AdsEventHandler EventSkipped = delegate { };
-
         public bool UseMockInDebugBuild { get; set; }
+        public bool IsInitialized { get; set; }
         
         public void RegisterPlacement(AdsPlacement placement)
         {
             Subscribe(placement);
             AddAvailableProcessor(placement);
         }
-        
-        public void Show(AdsPlacement placement, IAdRequestData requestData)
+
+        public void RegisterNetwork(IAdsNetwork network)
         {
-            if (_displayProcessors.TryGetValue(placement.GetUnitType(), out var processor) == false)
+            _networks.Add(network);
+        }
+        
+        public void Show(AdsPlacement placement)
+        {
+            if (_displayProcessors.TryGetValue(placement.UnitType, out var processor) == false)
             {
-                if (Service<AdsMediator>.Logger.IsErrorAllowed) 
-                    Service<AdsMediator>.Logger.Error($"{placement.Name}|Display processor for {placement.GetUnitType()} not found");
+                if (Logger<AdsMediator>.IsErrorAllowed) 
+                    Logger<AdsMediator>.Error($"{placement.DebugName}|Display processor for {placement.UnitType} not found");
                 return;
             }
-            if (Service<AdsMediator>.Logger.IsDebugAllowed) 
-                Service<AdsMediator>.Logger.Debug($"{placement.Name}|Request show placement ads");
-            processor.Show(placement, requestData, _typedUnits[placement.GetUnitType()]);
+            if (Logger<AdsMediator>.IsDebugAllowed) 
+                Logger<AdsMediator>.Debug($"{placement.DebugName}|Request show placement ads");
+            processor.Show(placement, _typedUnits[placement.UnitType]);
         }
 
-        public void Hide(AdsAnchoredBannerPlacement placement)
+        public void Hide(AdsSmartBannerPlacement placement)
         {
-            if (_displayProcessors.TryGetValue(placement.GetUnitType(), out var processor) == false)
+            if (_displayProcessors.TryGetValue(placement.UnitType, out var processor) == false)
             {
-                if (Service<AdsMediator>.Logger.IsErrorAllowed) 
-                    Service<AdsMediator>.Logger.Error($"{placement.Name}|Display processor for {placement.GetUnitType()} not found");
+                if (Logger<AdsMediator>.IsErrorAllowed) 
+                    Logger<AdsMediator>.Error($"{placement.DebugName}|Display processor for {placement.UnitType} not found");
                 return;
             }
 
-            if (processor is AnchoredRepeatedDisplayProcessor repeatedProcessor)
+            if (processor.DisplayedUnit is IHiddenBanner banner)
             {
-                repeatedProcessor.Hide();
+                banner.Hide();
             } 
-            else 
-                if (Service<AdsMediator>.Logger.IsErrorAllowed) 
-                    Service<AdsMediator>.Logger.Error($"{placement.Name}|Display processor for {placement.GetUnitType()} not support Hide method");
+            else if (Logger<AdsMediator>.IsErrorAllowed)
+                Logger<AdsMediator>.Error($"{placement.DebugName}|Display processor for {placement.UnitType} not support Hide method");
         }
 
         public AdsMediator()
         {
+            if (Logger<AdsMediator>.IsDebugAllowed) 
+                Logger<AdsMediator>.Debug($"service created");
+            
             BindDisplayProcessor<IRewardedVideoAdUnit>(new DisplayProcessor());
             BindDisplayProcessor<IInterstitialAdUnit>(new DisplayProcessor());
-            BindDisplayProcessor<IAnchoredBannerAdUnit>(new AnchoredRepeatedDisplayProcessor());
+            BindDisplayProcessor<ITopSmartBannerAdUnit>(new DisplayProcessor());
+            BindDisplayProcessor<IBottomSmartBannerAdUnit>(new DisplayProcessor());
 
             Loop.StartCoroutine(Initialize());
         }
@@ -82,15 +90,42 @@ namespace GameKit.Ads
             _displayProcessors[typeof(TUnitType)] = processor;
         }
 
+        public void DisableIntrusiveAdUnits()
+        {
+            if (Logger<AdsMediator>.IsDebugAllowed) 
+                Logger<AdsMediator>.Debug($"service disable intrusive ad units");
+            var s = _session.Get();
+            s.disableIntrusiveAdUnits = true;
+            _session.Save(s);
+            
+            foreach (var displayProcessor in _displayProcessors.Values)
+            {
+                if (displayProcessor.DisplayedUnit is IHiddenBanner banner && banner.State == AdUnitState.Displayed)
+                {
+                    banner.Hide();
+                }
+            }
+
+            var rewardedUnitType = typeof(IRewardedVideoAdUnit);
+            foreach (var processor in _availableProcessors)
+            {
+                if (processor.UnitType == rewardedUnitType) continue;
+                processor.Disable();
+            }
+        }
+
         private void AddAvailableProcessor(AdsPlacement placement)
         {
-            Type unitType = placement.GetUnitType();
+            Type unitType = placement.UnitType;
             if (_typedUnits.TryGetValue(unitType, out var units) == false)
             {
                 _typedUnits[unitType] = units = new List<IAdUnit>();
-                if (_networks is null == false) InitializeUnitsFoType(unitType);
+                if (IsInitialized) InitializeUnitsFoType(unitType);
             }
-            _availableProcessors.Add(new AvailableProcessor(placement, units));
+
+            var processor = new AvailableProcessor(placement, unitType, units);
+            _availableProcessors.Add(processor);
+            if (_session.Get().disableIntrusiveAdUnits) processor.Disable();
         }
 
         private void InitializeUnitsFoType(Type unitType)
@@ -102,31 +137,37 @@ namespace GameKit.Ads
             
             foreach (var network in _networks)
             {
-                units.AddRange(network.GetUnits(unitType));                        
+                if (network.IsSupported(unitType))
+                    units.AddRange(network.GetUnits(unitType));
             }
         }
         
         private IEnumerator Initialize()
         {
+            if (Logger<AdsMediator>.IsDebugAllowed) 
+                Logger<AdsMediator>.Debug($"service initializing");
+            
             if (UseMockInDebugBuild && Debug.isDebugBuild)
             {
                 _networks = new List<IAdsNetwork>(1) { new MockAdsNetwork() };
             }
-            else
+
+            if (_networks.Count == 0)
             {
-                var resNetworks = Resources.LoadAll<AdsNetwork>("Networks");
-                if (resNetworks is null || resNetworks.Length == 0)
-                {
-                    if (Service<AdsMediator>.Logger.IsWarningAllowed) 
-                        Service<AdsMediator>.Logger.Warning($"Network list is empty");
-                    yield break;
-                }
-                _networks = new List<IAdsNetwork>(resNetworks);
+                if (Logger<AdsMediator>.IsWarningAllowed)
+                    Logger<AdsMediator>.Warning($"Network list is empty");
+                
+#if UNITY_EDITOR
+                _networks = new List<IAdsNetwork>(1) { new MockAdsNetwork() };
+#else
+                yield break;
+#endif
             }
 
-            foreach (var network in _networks)
+            Dictionary<TaskRoutine, IAdsNetwork> routines = new Dictionary<TaskRoutine, IAdsNetwork>();
+            foreach (IAdsNetwork network in _networks)
             {
-                network.Initialize(false, Session<AdsSession>.Get().purchasedDisableUnits); //TODO fix tracking consent
+                routines.Add(network.Initialize(false, !_session.Get().disableIntrusiveAdUnits), network); //TODO fix tracking consent
             }
 
             bool initialized = false;
@@ -134,25 +175,48 @@ namespace GameKit.Ads
             {
                 yield return null;
                 initialized = true;
-                foreach (var network in _networks) initialized = initialized && network.IsInitialized;
+                foreach (var routine in routines)
+                {
+                    initialized = initialized && routine.Key.IsCompleted;
+                }
             }
 
+            foreach (var routine in routines)
+            {
+                if (routine.Key.IsCompletedSuccessfully != true) _networks.Remove(routine.Value);
+            }
+
+            IsInitialized = true;
+            
             foreach (var unit in _typedUnits)
             {
                 InitializeUnitsFoType(unit.Key);
             }
+
+            if (_networks.Count == 0 && Logger<AdsMediator>.IsWarningAllowed)
+                Logger<AdsMediator>.Warning($"service initialized with {_networks.Count} networks");
+            else if (Logger<AdsMediator>.IsDebugAllowed) 
+                Logger<AdsMediator>.Debug($"service initialized with {_networks.Count} networks");
             
             Loop.StartCoroutine(AvailableLoop());
         }
 
         private IEnumerator AvailableLoop()
         {
+            if (Logger<AdsMediator>.IsDebugAllowed) 
+                Logger<AdsMediator>.Debug($"AvailableLoop started with {_availableProcessors.Count} processors");
+
+            var waiter = new WaitForSeconds(1);
             while (Loop.IsQuitting == false)
             {
-                yield return null;
+                yield return waiter;
                 
                 int count = _availableProcessors.Count;
-                for (var i = 0; i < count; i++) _availableProcessors[i].UpdateFetchedState();
+                for (var i = 0; i < count; i++)
+                {
+                    if (_availableProcessors[i].Enabled)
+                        _availableProcessors[i].UpdateFetchedState();
+                }
             }
         }
         

@@ -24,6 +24,7 @@ namespace GameKit.Editor
             // Calculate rects
             var contentRect = new Rect(position.x, position.y, position.width - buttonWidth, position.height);
             var buttonRect = new Rect(position.x + position.width - buttonWidth, position.y, buttonWidth, position.height);
+            var buttonSecondRect = new Rect(position.x + position.width - buttonWidth - buttonWidth - 2, position.y, buttonWidth, position.height);
 
             string tableValue = property.FindPropertyRelative("_table").stringValue;
             string gridValue = property.FindPropertyRelative("_grid").stringValue;
@@ -53,6 +54,11 @@ namespace GameKit.Editor
             else
             {
                 EditorGUI.LabelField(contentRect,  "Gid: " + gridValue + " (..." + tableValue.Substring(tableValue.Length - 8, 8) + ")");
+                if (GUI.Button(buttonSecondRect, "Open"))
+                {
+                    Application.OpenURL($"https://docs.google.com/spreadsheets/d/{tableValue}/edit#gid={gridValue}");
+                }
+                
                 if (GUI.Button(buttonRect, "Clear"))
                 {
                     property.FindPropertyRelative("_table").stringValue = string.Empty;

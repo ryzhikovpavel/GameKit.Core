@@ -9,7 +9,8 @@ namespace GameKit
 
     public class Localization
     {
-        private const string LANGUAGE_PREFS_KEY = "application_localization_language";
+        // ReSharper disable once InconsistentNaming
+        private const string LANGUAGE_PREFS_KEY = "gamekit_localization_language";
 
         public event OnLocalizeNotification OnLocalize = delegate {};
 
@@ -24,6 +25,8 @@ namespace GameKit
             
             var currentLang = Application.systemLanguage;
             if (currentLang == SystemLanguage.Unknown) currentLang = SystemLanguage.English;
+            Debug.Log($"last key: {PlayerPrefs.GetString("application_localization_language")}");
+            Debug.Log($"current: {currentLang}, saved: {PlayerPrefs.GetString(LANGUAGE_PREFS_KEY)}");
             Set(PlayerPrefs.GetString(LANGUAGE_PREFS_KEY, currentLang.ToString()));
         }
 
@@ -79,7 +82,9 @@ namespace GameKit
 
             Translation.Initialize();
 
+            Debug.Log($"SET LANGUAGE: {language}; Translation: {Translation.Language.ToString()}");
             PlayerPrefs.SetString(LANGUAGE_PREFS_KEY, Translation.Language.ToString());
+            PlayerPrefs.Save();
             OnLocalize();
         }
 

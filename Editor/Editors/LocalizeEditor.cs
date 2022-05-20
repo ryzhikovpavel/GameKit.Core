@@ -1,7 +1,4 @@
-using System;
-using System.Reflection;
 using GameKit.Editor.Tools;
-using GameKit.Localizers;
 using UnityEditor;
 using UnityEngine;
 
@@ -55,12 +52,12 @@ namespace GameKit.Editor.Editors
                     foreach (var lang in Service<Localization>.Instance.Translations)
                     {
                         GUILayout.BeginHorizontal();
-                        GUILayout.Label(lang.Language.ToString(), GUILayout.Width(66f));
+                        GUILayout.Label(lang.Language.ToString(), GUILayout.Width(87f));
                         
                         lang.Translate(myKey, out string translation);
                         if (GUILayout.Button(translation, "textArea", GUILayout.MinWidth(80f), GUILayout.MaxWidth(Screen.width - 110f)))
                         {
-                            (target as LocalizerText).Bind(translation);
+                            (target as LocalizerText)?.Bind(translation, lang.rtl);
                             GUIUtility.hotControl = 0;
                             GUIUtility.keyboardControl = 0;
                         }

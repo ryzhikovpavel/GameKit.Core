@@ -8,19 +8,19 @@ namespace GameKit
     {
         private StringBuilder _builder = new StringBuilder();
         
-        public AnalyticName Name { get; } = new AnalyticName("Mock");
+        public string Name { get; } = nameof(MockAnalytics);
         
-        public void LogEvent(Dictionary<string, object> values)
+        public void LogEvent(AnalyticsEvent e)
         {
-            foreach (var pair in values)
+            foreach (var pair in e.EventData)
             {
                 _builder.Append($"{pair.Key}={pair.Value};");
             }
             
-            Service<Analytics>.Logger.Info($"Event: {values[AnalyticsEvent.EVENT_NAME_KEY]}; Values: {_builder}");
+            Logger<Analytics>.Info($"Event: {e.GetFullEventName()}; Values: {_builder}");
             _builder.Clear();
         }
-
+        
         #if UNITY_EDITOR
         [RuntimeInitializeOnLoadMethod]
         private static void Initialize()
