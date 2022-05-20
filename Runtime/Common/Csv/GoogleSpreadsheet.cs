@@ -22,6 +22,12 @@ namespace GameKit.Csv
             _grid = url.Substring(url.IndexOf("gid=") + 4, url.Length - url.IndexOf("gid=") - 4);
         }
 
+        public GoogleSpreadsheet(string table, string grid)
+        {
+            _table = table;
+            _grid = grid;
+        }
+
         public string ExportToCvsUrl()
         {
             return string.Format("{0}{1}/export?format=csv&gid={2}&rand={3}", Url, _table, _grid, UnityEngine.Random.value);
