@@ -36,7 +36,7 @@ namespace GameKit
         {
             var options = _session.Get();
             options.ChangeMute(channel, mute);
-            _session.Save(ref options);
+            _session.Save(options);
             foreach (var instance in _instances)
                 if (instance.Channel == channel) instance.SetMute(mute);
 

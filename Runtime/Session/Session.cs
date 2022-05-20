@@ -18,9 +18,9 @@ namespace GameKit
         internal static string DefaultName { get; } = typeof(T).Name;
         
         private readonly string _name;
-        private ISessionGroup _group;
+        private readonly ISessionGroup _group;
         private T _value;
-        private bool _dirty;
+        private bool _loaded;
 
         public event SessionHandler<T> EventChanged;
 
@@ -28,37 +28,40 @@ namespace GameKit
         {
             _group = group;
             _name = name;
-            if (_group != null) Load();
 #if UNITY_EDITOR
             if (typeof(T).IsSerializable == false)
                 throw new Exception($"{typeof(T).Name} is not serializable");
 #endif
         }
 
+        public bool IsEmpty()
+        {
+            return _group.Contains(_name);
+        }
+
         public T Get()
         {
-            if (_group is null) return Load();
+            if (_loaded == false) return Load();
             return _value;
         }
 
         private ref T Load()
         {
-            if (_group is null) _group = Service<ISessionGroup>.Instance;
+            _loaded = true;
             _value = _group.Load<T>(_name);
             return ref _value;
         }
         
-        public void Save(ref T value)
+        public void Save(T value)
         {
+            _loaded = true;
             _value = value;
-            if (_group is null) _group = Service<ISessionGroup>.Instance;
             _group.Save(_name, ref _value);
             EventChanged?.Invoke(this);
         }
 
         public void Clear()
         {
-            if (_group is null) _group = Service<ISessionGroup>.Instance;
             _group.Remove(_name);
         }
     }
@@ -69,13 +72,13 @@ namespace GameKit
     {
         event SessionHandler<T> EventChanged;
         T Get();
-        void Save(ref T value);
+        void Save(T value);
         void Clear();
+        bool IsEmpty();
     }
     
     public static class Session
     {
-        public static ISession<T> Resolve<T>() where T : struct => Resolve<T>(Session<T>.DefaultName, null);
         public static ISession<T> Resolve<T>(ISessionGroup group) where T : struct => Resolve<T>(Session<T>.DefaultName, group);
         public static ISession<T> Resolve<T>(string name, ISessionGroup group) where T: struct => Session<T>.Resolve(name, group);
 

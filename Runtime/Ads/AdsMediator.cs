@@ -96,7 +96,7 @@ namespace GameKit.Ads
                 Logger<AdsMediator>.Debug($"service disable intrusive ad units");
             var s = _session.Get();
             s.disableIntrusiveAdUnits = true;
-            _session.Save(ref s);
+            _session.Save(s);
             
             foreach (var displayProcessor in _displayProcessors.Values)
             {
