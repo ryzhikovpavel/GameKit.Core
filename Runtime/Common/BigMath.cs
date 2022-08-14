@@ -293,13 +293,20 @@ namespace GameKit
         #endregion
     
         public void Append(double v, byte e)
-        {            
-            if (e < exp) v /= (float)Math.Pow(1000, exp - e);                            
+        {
+            if (e < exp)
+            {
+                if (exp - e > 3) return;
+                v /= (float)Math.Pow(1000, exp - e);
+            }                            
 
             if (e > exp)
             {
-                value /= (float)Math.Pow(1000, e - exp);
-                exp = e;                
+                if (e - exp > 3)
+                    value = 0;
+                else
+                    value /= (float)Math.Pow(1000, e - exp);
+                exp = e;
             }
 
             value += v;
@@ -408,24 +415,5 @@ namespace GameKit
                 exp++;
             }            
         }
-        
-        // public static ThousandfoldNumber Parse(string value, string[] articles)
-        // {
-        //     value = value.Replace(" ", "");
-        //     if (value.Length < 2) return new ThousandfoldNumber(float.Parse(value), 0);
-        //     var ext = value.Substring(value.Length - 2, 2);
-        //
-        //     if (ext[0].IsNumber()) ext = ext.Remove(0, 1).ToUpper();
-        //     if (ext[0].IsNumber()) ext = ext.Remove(0, 1).ToUpper();            
-        //                             
-        //     value = value.Remove(value.Length - ext.Length, ext.Length);
-        //     var art = articles.IndexOf(ext);
-        //     if (art == -1)
-        //     {
-        //         Debug.LogError("Articles not found");
-        //         art = 0;
-        //     }
-        //     return new ThousandfoldNumber(value.ToFloatFix(), art);
-        // }
     }
 }

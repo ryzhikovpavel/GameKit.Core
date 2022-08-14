@@ -3,6 +3,7 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using GameKit.Internal;
 
 namespace GameKit
@@ -10,11 +11,15 @@ namespace GameKit
     public static class Loop
     {
         public delegate void ApplicationPauseEvent(bool pause);
+
         public delegate void ApplicationFocusEvent(bool focus);
 
+
+        private static readonly CancellationTokenSource UnityRuntimeTokenSource = new CancellationTokenSource();
         private static List<IEnumerator> _coRoutines;
         private static UnityLoopBehaviour _unityLoop;
 
+        public static event Action EventDispose = delegate { };
         public static event Action EventQuit = delegate { };
         public static event Action EventStart = delegate { };
         public static event ApplicationPauseEvent EventFocus = delegate { };
@@ -29,6 +34,8 @@ namespace GameKit
         public static bool IsStarted => _unityLoop is null == false;
         public static bool IsPaused { get; private set; }
         public static bool IsQuitting { get; private set; }
+
+        public static CancellationToken Token => UnityRuntimeTokenSource.Token;
 
 
         [RuntimeInitializeOnLoadMethod]
@@ -106,6 +113,8 @@ namespace GameKit
             IsPaused = true;
             IsQuitting = true;
             EventQuit();
+            EventDispose();
+            UnityRuntimeTokenSource.Cancel();
         }
 
         private static void OnEventStart()

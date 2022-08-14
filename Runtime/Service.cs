@@ -1,14 +1,14 @@
 ﻿#pragma warning disable 649
 using System;
+using UnityEngine;
 
 namespace GameKit
 {
-    public static class Service<T>
+    public static class Service<T> where T : class
     {
         private static Func<T> _resolve;
         private static T _instance;
         public static event Action EventInstantiated;
-        
         
         public static T Instance
         {
@@ -25,6 +25,7 @@ namespace GameKit
                 throw new Exception($"Binding not possible. The {typeof(T).Name} service is already instantiated.");
 
             _instance = instance;
+            Instantiated();
         }
 
         public static void Bind(Func<T> resolve)
@@ -33,10 +34,9 @@ namespace GameKit
                 throw new Exception($"Binding not possible. The {typeof(T).Name} service is already instantiated.");
 
             _resolve = resolve;
-            EventInstantiated?.Invoke();
         }
 
-        public static void Bind<TDerived>() where TDerived: T
+        public static void Bind<TDerived>() where TDerived: class, T
         {
             // ReSharper disable once ConvertClosureToMethodGroup
             Bind(()=>Service<TDerived>.Instance);
@@ -53,7 +53,7 @@ namespace GameKit
             if (_resolve is null == false)
             {
                 _instance = _resolve();
-                EventInstantiated?.Invoke();
+                Instantiated();
                 return;
             }
 
@@ -61,11 +61,23 @@ namespace GameKit
             if (type.IsClass && type.IsAbstract == false)
             {
                 _instance = (T)Activator.CreateInstance(type);
-                EventInstantiated?.Invoke();
+                Instantiated();
                 return;
             }
 
             throw new NotImplementedException($"Service {typeof(T).Name} not implemented");
+        }
+
+        private static void Instantiated()
+        {
+            EventInstantiated?.Invoke();
+            Loop.EventDispose += Dispose;
+        }
+        
+        private static void Dispose()
+        {
+            if (_instance is IDisposable disposable) disposable.Dispose();
+            _instance = null;
         }
     }
 }

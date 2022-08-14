@@ -48,6 +48,8 @@ namespace GameKit.Implementation
             }
             _lines[index + 1] = JsonUtility.ToJson(data);
             MarkDirty();
+            if (Logger<Session>.IsDebugAllowed)
+                Logger<Session>.Debug($"{_filePath} saving");
         }
 
         public void Remove(string name)
@@ -95,6 +97,8 @@ namespace GameKit.Implementation
             IsDirty = false;
             if (_autoFlush) Loop.EventEndFrame -= Flush;
             File.WriteAllLines(_filePath, _lines);
+            if (Logger<Session>.IsDebugAllowed)
+                Logger<Session>.Debug($"{_filePath} saved");
         }
     }
 }

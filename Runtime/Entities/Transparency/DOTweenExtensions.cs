@@ -3,7 +3,7 @@ using DG.Tweening.Core;
 using DG.Tweening.Plugins.Options;
 using GameKit.Entities.Transparency;
 
-namespace GameKit.Entities
+namespace GameKit
 {
     public static class DoTweenExtensions
     {

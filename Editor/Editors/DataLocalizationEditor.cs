@@ -53,6 +53,11 @@ namespace GameKit.Editor.Editors
 
             DrawDefaultInspector();
             
+            if (Application.isPlaying == false && GUILayout.Button("Load and update translations"))
+            {
+                if (LocalizationTools.IsLoading == false) LocalizationTools.LoadLocalization();
+            }
+            
             serializedObject.ApplyModifiedProperties();
         }
     }

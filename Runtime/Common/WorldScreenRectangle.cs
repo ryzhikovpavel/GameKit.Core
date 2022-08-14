@@ -6,38 +6,48 @@ namespace GameKit
 {
     public sealed class WorldScreenRectangle
     {
-        public readonly float CameraOrthographicSize;
+        private Rect _worldRect;
+        private float _ratio;
         
-        public Rect Rect { get; private set; }
-        public Rect SafeArea { get; private set; }
-        public float Ratio { get; private set; }
+        public readonly float CameraOrthographicSize;
+
+        public Rect Rect => _worldRect;
+        public Rect SafeArea => CalculateSafeArea();
+        public float Ratio => _ratio;
         
         public WorldScreenRectangle(float cameraOrthographicSize)
         {
             CameraOrthographicSize = cameraOrthographicSize;
+            Initialize();
+        }
+
+        private void Initialize()
+        {
             Calculate();
         }
-        
+
         private void Calculate()
         {
-            Ratio = (float)Screen.width / (float)Screen.height;
+            _ratio = (float)Screen.width / (float)Screen.height;
 
             var height = CameraOrthographicSize * 2;
-            var width = height * Ratio;
+            var width = height * _ratio;
 
-            Rect = new Rect(-width / 2f, -height / 2f, width, height);
+            _worldRect = new Rect(-width / 2f, -height / 2f, width, height);
+        }
 
-            SafeArea = Screen.safeArea; 
+        private Rect CalculateSafeArea()
+        {
+            var screenSafeArea = Screen.safeArea;
+            var anchorMin = screenSafeArea.position;
+            var anchorMax = screenSafeArea.position + screenSafeArea.size;
             
-            var anchorMin = SafeArea.position;
-            var anchorMax = SafeArea.position + SafeArea.size;
+            anchorMin.x = _worldRect.xMin + _worldRect.width * anchorMin.x / Screen.width;
+            anchorMax.x = _worldRect.xMax - _worldRect.width * (1 - anchorMax.x / Screen.width);
+            anchorMax.y = _worldRect.yMax - _worldRect.height * (1 - anchorMax.y / Screen.height);
+            anchorMin.y = _worldRect.yMin + _worldRect.height * anchorMin.y / Screen.height;
             
-            anchorMin.x = Rect.xMin + Rect.width * anchorMin.x / Screen.width;
-            anchorMax.x = Rect.xMax - Rect.width * (1 - anchorMax.x / Screen.width);
-            anchorMax.y = Rect.yMax - Rect.height * (1 - anchorMax.y / Screen.height);
-            anchorMin.y = Rect.yMin + Rect.height * anchorMin.y / Screen.height;
-
-            SafeArea = Rect.MinMaxRect(anchorMin.x, anchorMin.y, anchorMax.x, anchorMax.y);
+            return Rect.MinMaxRect(anchorMin.x, anchorMin.y, anchorMax.x, anchorMax.y);
         }
 
         public float GetRandomX(float offset)

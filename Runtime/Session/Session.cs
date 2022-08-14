@@ -55,7 +55,7 @@ namespace GameKit
         public void Save(T value)
         {
             _loaded = true;
-            _value = value;
+            _value = value;            
             _group.Save(_name, ref _value);
             EventChanged?.Invoke(this);
         }
@@ -77,7 +77,7 @@ namespace GameKit
         bool IsEmpty();
     }
     
-    public static class Session
+    public sealed class Session
     {
         public static ISession<T> Resolve<T>(ISessionGroup group) where T : struct => Resolve<T>(Session<T>.DefaultName, group);
         public static ISession<T> Resolve<T>(string name, ISessionGroup group) where T: struct => Session<T>.Resolve(name, group);

@@ -3,30 +3,27 @@ using System;
 using GameKit.Implementation;
 using UnityEngine;
 
+// ReSharper disable once CheckNamespace
 namespace GameKit
 {
-    public delegate void OnLocalizeNotification();
+    public delegate void LocalizeNotificationHandler();
 
     public class Localization
     {
         // ReSharper disable once InconsistentNaming
         private const string LANGUAGE_PREFS_KEY = "gamekit_localization_language";
+        private readonly DataLocalization _config;
 
-        public event OnLocalizeNotification OnLocalize = delegate {};
-
+        public event LocalizeNotificationHandler EventLocalize = delegate {};
         public DataLanguageTranslation[] Translations => _config.Translations;
         public DataLanguageTranslation Translation { get; private set; }
-
-        private DataLocalization _config;
-
+        
         public Localization()
         {
             _config = Resources.Load<DataLocalization>("Localization");
             
             var currentLang = Application.systemLanguage;
             if (currentLang == SystemLanguage.Unknown) currentLang = SystemLanguage.English;
-            Debug.Log($"last key: {PlayerPrefs.GetString("application_localization_language")}");
-            Debug.Log($"current: {currentLang}, saved: {PlayerPrefs.GetString(LANGUAGE_PREFS_KEY)}");
             Set(PlayerPrefs.GetString(LANGUAGE_PREFS_KEY, currentLang.ToString()));
         }
 
@@ -37,10 +34,15 @@ namespace GameKit
 
         private void Set(string languageKey)
         {
-            if (Enum.TryParse(languageKey, true, out SystemLanguage language)) Set(language);
+            if (Enum.TryParse(languageKey, true, out SystemLanguage language))
+                Set(language);
             else
             {
-                Debug.LogError("Language " + languageKey + " not found, set default " + _config.Default.Language);
+                if (_config.Default is null)
+                {
+                    Debug.LogError($"Default translation not binded");
+                    return;
+                }
                 Set(_config.Default);
             }
         }
@@ -48,12 +50,12 @@ namespace GameKit
         public void Set(SystemLanguage language)
         {
             Translation = null;
+            if (_config.Translations is null) return;
             foreach (var translation in _config.Translations)
             {
                 if (translation.Language == language)
                 {
                     Translation = translation;
-                    //Debug.Log("Set current language: " + language);
                     break;
                 }
 
@@ -62,7 +64,6 @@ namespace GameKit
                     if (alias == language)
                     {
                         Translation = translation;
-                        //Debug.Log("Set current language: " + language + " as " + Translation.Language);
                         break;
                     }
                 }
@@ -74,18 +75,16 @@ namespace GameKit
 
                 if (Translation is null)
                 {
-                    throw new IndexOutOfRangeException();
+                    Debug.LogError($"Default translation not binded");
+                    return;
                 }
-                
-                Debug.Log("Language " + language + " not found, set default " + _config.Default.Language);
             }
 
             Translation.Initialize();
 
-            Debug.Log($"SET LANGUAGE: {language}; Translation: {Translation.Language.ToString()}");
             PlayerPrefs.SetString(LANGUAGE_PREFS_KEY, Translation.Language.ToString());
             PlayerPrefs.Save();
-            OnLocalize();
+            EventLocalize();
         }
 
         public string Translate(string key)

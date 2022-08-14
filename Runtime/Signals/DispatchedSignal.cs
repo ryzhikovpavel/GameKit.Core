@@ -23,9 +23,9 @@ namespace GameKit
 
         public DispatchedSignal()
         {
-            ClassPool<List<T>>.Initialize(2);
+            ClassPool<List<T>>.Initialize(3);
         }
-        
+         
         protected virtual void OnDispatched()
         {
             if (Logger.IsDebugAllowed) Logger.Debug($"Signal {GetType().Name} is dispatched");
@@ -44,6 +44,6 @@ namespace GameKit
             ClassPool<List<T>>.Push(list);
         }
 
-        protected virtual ILogger Logger => Logger<ILogger>.Instance;
+        protected virtual ILogger Logger => Logger<Signal>.Instance;
     }
 }

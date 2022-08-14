@@ -134,7 +134,7 @@ namespace GameKit
         
         public IEnumerator<T> GetEnumerator()
         {
-            return _pool.GetEnumerator();
+            return GetPool().GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

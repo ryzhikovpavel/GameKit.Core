@@ -11,13 +11,13 @@ namespace GameKit
         private void OnEnable()
         {
             if (enabled == false) return;
-            Service<Localization>.Instance.OnLocalize += OnLocalize;
+            Service<Localization>.Instance.EventLocalize += OnLocalize;
             OnLocalize();
         }
 
         private void OnDisable()
         {
-            Service<Localization>.Instance.OnLocalize -= OnLocalize;
+            Service<Localization>.Instance.EventLocalize -= OnLocalize;
         }
 
         protected abstract void OnLocalize();

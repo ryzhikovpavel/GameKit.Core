@@ -13,9 +13,13 @@ namespace GameKit.Editor.Tools
 {
     public static class LocalizationTools
     {
+        internal static bool IsLoading { get; private set; }
+        
         [MenuItem("GameKit/Localization/Load + Update")]
-        private static async void LoadLocalization()
+        internal static async void LoadLocalization()
         {
+            IsLoading = true;
+            
             EditorUtility.DisplayProgressBar("Localization updating", "Loading google spreadsheet data", 0);
             
             var localization = Resources.Load<DataLocalization>("Localization");
@@ -67,7 +71,8 @@ namespace GameKit.Editor.Tools
                 Debug.Log("Localization compile with errors");
                 Debug.LogException(e);
             }
-            
+
+            IsLoading = false;
             EditorUtility.ClearProgressBar();
         }
 
