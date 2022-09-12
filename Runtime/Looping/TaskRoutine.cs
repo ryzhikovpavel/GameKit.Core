@@ -58,7 +58,7 @@ namespace GameKit
                 return;
             }
             
-            CancelWithError($"{Routine.GetType().Name} return UNEXPECTED result ({Routine.Current.GetType().Name}), but required {nameof(T)}");
+            CancelWithError($"{Routine.GetType().Name} return UNEXPECTED result ({Routine.Current.GetType().Name}), but required {typeof(T).Name}");
         }
     }
     
