@@ -1,0 +1,14 @@
+{
+    "name": "GameKit.Core",
+    "version": "1.0.0",
+    "displayName": "GameKit.Core",
+    "description": "",
+    "unity": "2021.3",
+    "keywords": [       
+		"GameKit"
+    ],
+    "author": {
+        "name": "ryzhikovpavel",
+        "email": ""        
+    }
+}
