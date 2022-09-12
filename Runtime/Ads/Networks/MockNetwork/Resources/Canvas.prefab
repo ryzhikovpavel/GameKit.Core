@@ -906,7 +906,7 @@ Canvas:
   m_SortingBucketNormalizedSize: 0
   m_AdditionalShaderChannelsFlag: 25
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 9999
   m_TargetDisplay: 0
 --- !u!114 &1805152181615613797
 MonoBehaviour:
@@ -966,6 +966,7 @@ MonoBehaviour:
   buttonCanceled: {fileID: 1805152180817438613}
   buttonFullscreen: {fileID: 1805152181083756941}
   buttonAnchored: {fileID: 1805152180701164173}
+  anchoredBannerLabel: {fileID: 0}
 --- !u!1 &1805152182132081377
 GameObject:
   m_ObjectHideFlags: 0

@@ -31,7 +31,7 @@ namespace GameKit
         public static event Action EventFixedUpdate = delegate { };
         public static event Action EventEndFrame = delegate { };
 
-        public static bool IsStarted => _unityLoop is null == false;
+        public static bool IsStarted => _unityLoop != null;
         public static bool IsPaused { get; private set; }
         public static bool IsQuitting { get; private set; }
 
@@ -115,6 +115,8 @@ namespace GameKit
             EventQuit();
             EventDispose();
             UnityRuntimeTokenSource.Cancel();
+
+            Dispose();
         }
 
         private static void OnEventStart()
@@ -144,6 +146,26 @@ namespace GameKit
                 yield return waitEndFrame;
                 EventEndFrame();
             }
+        }
+
+        private static void Dispose()
+        {
+            if (_coRoutines != null) _coRoutines.Clear();
+            _unityLoop = null;
+            EventDispose = delegate { };
+            EventQuit = delegate { };
+            EventStart = delegate { };
+            EventFocus = delegate { };
+            EventPause = delegate { };
+            EventSuspend = delegate { };
+            EventResume = delegate { };
+            EventUpdate = delegate { };
+            EventLateUpdate = delegate { };
+            EventFixedUpdate = delegate { };
+            EventEndFrame = delegate { };
+
+            IsPaused = false;
+            IsQuitting = false;
         }
     }
 }

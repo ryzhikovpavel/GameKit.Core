@@ -1,155 +1,11 @@
 ﻿using System;
-using Random = UnityEngine.Random;
 
+// ReSharper disable once CheckNamespace
 namespace GameKit
 {
-    public static class BigMath
-    {
-        public static readonly string[] Articles = new string[]
-        {
-            "",         // 999
-            "K",        // 1 000
-            "M",        // 1 000 000
-            "B",        // 1 000 000 000
-            "T",        // 1 000 000 000 000
-            "AA",       // 1 000 000 000 000 000
-            "AB",       // 1 000 000 000 000 000 000
-            "AC",       // 1 000 000 000 000 000 000 000
-            "AD",       // 1 000 000 000 000 000 000 000 000
-            "AE",       // 1 000 000 000 000 000 000 000 000 000
-            "AF",       // 1 000 000 000 000 000 000 000 000 000 000
-            "AG",       // 1 000 000 000 000 000 000 000 000 000 000 000
-            "AH",       // 1 000 000 000 000 000 000 000 000 000 000 000 000
-            "AI",       // 1 000 000 000 000 000 000 000 000 000 000 000 000 000
-            "AJ",       // 1 000 000 000 000 000 000 000 000 000 000 000 000 000 000
-            "AK",       // 1 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
-            "AL",       // 1 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
-            "AM",       // 1 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
-            "AN",       // 1 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
-            "AO",       // 1 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
-            "AP",       // 1 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
-            "AQ",       // 1 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
-            "AR",       // 1 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
-            "AS",       // 1 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
-            "AT",       // 1 000 AS
-            "AU",       // 1 000 AT
-            "AV",       // 1 000 AU
-            "AW",       // 1 000 AW
-            "AX",       // 1 000 AW
-            "AY",       // 1 000 AX
-            "AZ",       // 1 000 AY
-            "BA",
-            "BB",
-            "BC",
-            "BD",
-            "BE",
-            "BF",
-            "BG",
-            "BH",
-            "BI",
-            "BJ",
-            "BK",
-            "BL",
-            "BM",
-            "BN",
-            "BO",
-            "BP",
-            "BQ",
-            "BR",
-            "BS",
-            "BT",
-            "BU",
-            "BV",
-            "BW",
-            "BX",
-            "BY",
-            "BZ",
-            "CA",
-            "CB",
-            "CC",
-            "CD",
-            "CE",
-            "CF",
-            "CG",
-            "CH",
-            "CI",
-            "CJ",
-            "CK",
-            "CL",
-            "CM",
-            "CN",
-            "CO",
-            "CP",
-            "CQ",
-            "CR",
-            "CS",
-            "CT",
-            "CU",
-            "CV",
-            "CW",
-            "CX",
-            "CY",
-            "CZ",
-            "DA",
-            "DB",
-            "DC",
-            "DD",
-            "DE",
-            "DF",
-            "DG",
-            "DH",
-            "DI",
-            "DJ",
-            "DK",
-            "DL",
-            "DM",
-            "DN",
-            "DO",
-            "DP",
-            "DQ",
-            "DR",
-            "DS",
-            "DT",
-            "DU",
-            "DV",
-            "DW",
-            "DX",
-            "DY",
-            "DZ",
-            "EA",
-            "EB",
-            "EC",
-            "ED",
-            "EE",
-            "EF",
-            "EG",
-            "EH",
-            "EI",
-            "EJ",
-            "EK",
-            "EL",
-            "EM",
-            "EN",
-            "EO",
-            "EP",
-            "EQ",
-            "ER",
-            "ES",
-            "ET",
-            "EU",
-            "EV",
-            "EW",
-            "EX",
-            "EY",
-            "EZ",
-        };
-    }
-
     [Serializable]
     public struct ThousandfoldNumber
     {
-        public const int EXP_LIMIT = 3;
-
         public double value;
         public byte exp;
 
@@ -239,12 +95,12 @@ namespace GameKit
         }
         public static bool operator ==(ThousandfoldNumber a, ThousandfoldNumber b)
         {
-            return a.exp == b.exp && a.value == b.value;            
+            return a.exp == b.exp && Math.Abs(a.value - b.value) < 0.0001f;            
         }
 
         public static bool operator !=(ThousandfoldNumber a, ThousandfoldNumber b)
         {
-            return a.exp != b.exp || a.value != b.value;
+            return a.exp != b.exp || Math.Abs(a.value - b.value) > 0.0001f;
         }
 
         public override bool Equals(object obj)
@@ -328,7 +184,7 @@ namespace GameKit
                 return;
             }
 
-            while (value > 1000)
+            while (Math.Abs(value) > 1000)
             {
                 value /= 1000;
                 exp++;
@@ -352,7 +208,7 @@ namespace GameKit
 
         private void DivisionValue(double m)
         {
-            while (m > 1000f)
+            while (Math.Abs(m) > 1000f && exp > 0)
             {
                 exp--;
                 m /= 1000f;
@@ -377,7 +233,7 @@ namespace GameKit
                 exp += e;
                 value *= v;
 
-                while (value > 1000)
+                while (Math.Abs(value) > 1000)
                 {
                     value /= 1000;
                     exp++;
@@ -401,15 +257,13 @@ namespace GameKit
 
         private void Trim()
         {
-            if (value < 1)
+            while (Math.Abs(value) < 1 && exp > 0)
             {
-                if (exp == 0) return;
                 value *= 1000;
                 exp--;
-                return;
             }
             
-            while (value > 1000)
+            while (Math.Abs(value) > 1000)
             {
                 value /= 1000f;
                 exp++;
