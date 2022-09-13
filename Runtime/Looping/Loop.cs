@@ -65,6 +65,7 @@ namespace GameKit
                 _unityLoop.StartCoroutine(enumerator);
                 return;
             }
+
             if (_coRoutines == null) _coRoutines = new List<IEnumerator>();
             _coRoutines.Add(enumerator);
         }

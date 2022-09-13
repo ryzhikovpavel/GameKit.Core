@@ -33,6 +33,8 @@ namespace GameKit.Ads
         
         public void RegisterPlacement(AdsPlacement placement)
         {
+            if (Logger<AdsMediator>.IsDebugAllowed) 
+                Logger<AdsMediator>.Debug($"{placement.DebugName}|Registered");
             Subscribe(placement);
             AddAvailableProcessor(placement);
         }
@@ -40,6 +42,8 @@ namespace GameKit.Ads
         public void RegisterNetwork(IAdsNetwork network)
         {
             _networks.Add(network);
+            if (Logger<AdsMediator>.IsDebugAllowed) 
+                Logger<AdsMediator>.Debug($"{network.GetType().Name}|Registered");
         }
         
         public void Show(AdsPlacement placement)
@@ -90,6 +94,15 @@ namespace GameKit.Ads
             _displayProcessors[typeof(TUnitType)] = processor;
         }
 
+        public void EnableIntrusiveAdUnits()
+        {
+            if (Logger<AdsMediator>.IsDebugAllowed) 
+                Logger<AdsMediator>.Debug($"service enable intrusive ad units");
+            var s = _session.Get();
+            s.disableIntrusiveAdUnits = false;
+            _session.Save(s);
+        }
+        
         public void DisableIntrusiveAdUnits()
         {
             if (Logger<AdsMediator>.IsDebugAllowed) 
@@ -97,7 +110,7 @@ namespace GameKit.Ads
             var s = _session.Get();
             s.disableIntrusiveAdUnits = true;
             _session.Save(s);
-            
+
             foreach (var displayProcessor in _displayProcessors.Values)
             {
                 if (displayProcessor.DisplayedUnit is IHiddenBanner banner && banner.State == AdUnitState.Displayed)
@@ -165,9 +178,12 @@ namespace GameKit.Ads
             }
 
             Dictionary<TaskRoutine, IAdsNetwork> routines = new Dictionary<TaskRoutine, IAdsNetwork>();
+            var intrusiveAdUnits = !_session.Get().disableIntrusiveAdUnits;
+            if (Logger<AdsMediator>.IsDebugAllowed)
+                Logger<AdsMediator>.Debug($"Initialize networks with args [disableIntrusiveAdUnits: {intrusiveAdUnits}]");
             foreach (IAdsNetwork network in _networks)
             {
-                routines.Add(network.Initialize(false, !_session.Get().disableIntrusiveAdUnits), network); //TODO fix tracking consent
+                routines.Add(network.Initialize(false, intrusiveAdUnits), network); //TODO fix tracking consent
             }
 
             bool initialized = false;

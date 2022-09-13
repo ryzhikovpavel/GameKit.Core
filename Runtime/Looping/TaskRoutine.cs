@@ -47,14 +47,14 @@ namespace GameKit
             if (Routine.Current is RoutineResult<T> routineResult)
             {
                 Result = routineResult.Result;
-                Complete();
+                base.Complete();
                 return;
             }
 
             if (Routine.Current is T result)
             {
                 Result = result;
-                Complete();
+                base.Complete();
                 return;
             }
             

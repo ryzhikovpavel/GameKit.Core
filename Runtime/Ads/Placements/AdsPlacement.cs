@@ -43,7 +43,7 @@ namespace GameKit.Ads.Placements
 
         private void Initialize()
         {
-            if (DebugName.IsNullOrEmpty()) DebugName = UnitType.Name;
+            if (DebugName.IsNullOrEmpty()) DebugName = GetType().Name;
             Service<AdsMediator>.Instance.RegisterPlacement(this);
         }
         
