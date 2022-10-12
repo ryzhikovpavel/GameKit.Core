@@ -15,6 +15,7 @@ namespace GameKit.Ads.Placements
         public event AdsEventHandler EventClosed = delegate { };
         public event AdsErrorEventHandler EventFailed = delegate { };
         public event AdsInfoEventHandler EventClicked = delegate { };
+        public event AdsEventHandler EventReady = delegate { };
 
         public readonly string Name;
         public string DebugName { get; private set; }
@@ -51,12 +52,20 @@ namespace GameKit.Ads.Placements
             if (DebugName.IsNullOrEmpty()) DebugName = GetType().Name;
             Service<AdsMediator>.Instance.RegisterPlacement(this);
         }
-        
+
+        protected void DispatchReady()
+        {
+            if (Logger.IsDebugAllowed) Logger.Debug($"{DebugName} is ready");
+            EventReady(this);
+        }
+
         internal void DispatchFetched()
         {
             IsFetched = true;
             if (Logger.IsDebugAllowed) Logger.Debug($"{DebugName} is fetched");
             EventFetched(this);
+            
+            if (IsReady) DispatchReady();
         }
 
         internal void DispatchNoFill()
