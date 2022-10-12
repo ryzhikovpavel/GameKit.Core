@@ -23,16 +23,21 @@ namespace GameKit.Ads.Placements
         /// Advertising is loaded and ready to displayed
         /// </summary>
         public bool IsFetched { get; private set; }
-        
+
         /// <summary>
         /// Advertising meets the conditions of display
         /// </summary>
         public virtual bool IsAvailable => true;
-        
+
         /// <summary>
         /// IsFetched && IsAvailable
         /// </summary>
         public bool IsReady => IsFetched && IsAvailable;
+
+        /// <summary>
+        /// True on ad unit displayed
+        /// </summary>
+        public bool IsDisplayed { get; private set; }
 
         protected AdsPlacement(string name)
         {
@@ -64,12 +69,14 @@ namespace GameKit.Ads.Placements
         internal void DispatchDisplayed(IAdInfo info)
         {
             if (Logger.IsDebugAllowed) Logger.Debug($"{DebugName} is displayed");
+            IsDisplayed = true;
             EventDisplayed(this, info);
         }
 
         internal void DispatchClosed()
         {
             if (Logger.IsDebugAllowed) Logger.Debug($"{DebugName} is closed");
+            IsDisplayed = false;
             EventClosed(this);
         }
 
