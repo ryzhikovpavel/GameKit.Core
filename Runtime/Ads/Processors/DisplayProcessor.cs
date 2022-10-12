@@ -47,6 +47,8 @@ namespace GameKit.Ads.Processors
                 if (Logger<AdsMediator>.IsErrorAllowed) 
                     Logger<AdsMediator>.Error($"{placement.DebugName}|Ad unit error: {unit.Error}");
                 placement.DispatchFailed(unit.Error);
+                DoCloseAd(unit, placement);
+                placement.DispatchClosed();
                 yield break;
             }
             

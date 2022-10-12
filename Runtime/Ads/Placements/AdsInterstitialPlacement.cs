@@ -26,17 +26,19 @@ namespace GameKit.Ads.Placements
         
         public virtual void Show()
         {
-            if (IsAvailable == false) return;
-            if (IsFetched == false)return;
+            if (IsReady == false) return;
             Service<AdsMediator>.Instance.Show(this);
         }
 
         public virtual void Show(Action completed)
         {
-            if (IsAvailable == false) throw new Exception("Ad units not available");
-            if (IsFetched == false) throw new Exception("Ad units not loaded");
             _completed = completed;
-            Show();
+            if (IsReady) Service<AdsMediator>.Instance.Show(this);
+            else
+            {
+                _completed?.Invoke();
+                _completed = null;
+            }
         }
 
         private void OnClosed(AdsPlacement placement)

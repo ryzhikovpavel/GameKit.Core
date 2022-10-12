@@ -26,17 +26,11 @@ namespace GameKit.Ads.Placements
 
         public void Show(Action earned, Action skipped)
         {
-            EventFailed += OnEventFailed;
+            if (IsFetched == false) throw new Exception("Ad units not loaded");
+            
             _earned = earned;
             _skipped = skipped;
-            if (IsFetched == false) throw new Exception("Ad units not loaded");
             Service<AdsMediator>.Instance.Show(this);
-        }
-
-        private void OnEventFailed(AdsPlacement placement, string error)
-        {
-            _skipped?.Invoke();
-            Clear();
         }
 
         internal void DispatchEarned(IRewardAdInfo info)
