@@ -20,9 +20,9 @@ namespace GameKit.Csv
     public static class SpreadsheetReflection
     {
         private static Dictionary<Type, Func<string, object>> _supportedTypes;
-        private static void Initialize()
+        private static Dictionary<Type, Func<string, object>> Initialize()
         {
-            _supportedTypes = new Dictionary<Type, Func<string, object>>()
+            return new Dictionary<Type, Func<string, object>>()
             {
                 { typeof(int), (str) => int.Parse(str) },
                 { typeof(float), (str) => float.Parse(str) },
@@ -31,9 +31,11 @@ namespace GameKit.Csv
             };
         }
 
+        public static Dictionary<Type, Func<string, object>> SupportedTypes => _supportedTypes ??= Initialize();
+
         public static void ApplyTo(this Spreadsheet spreadsheet, int rowIndex, object to)
         {
-            if (_supportedTypes is null) Initialize();
+            if (_supportedTypes is null) _supportedTypes = Initialize();
             
             var type = to.GetType();
             var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -70,7 +72,6 @@ namespace GameKit.Csv
                 {
                     throw new Exception($"'{fieldName}' field in {rowIndex} row with {strValue} content parse failed", e);
                 }
-                
             }
         }
     }
