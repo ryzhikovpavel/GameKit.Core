@@ -9,6 +9,8 @@ namespace GameKit.Rating.Implementation
         public override void Open(Action onComplete)
         {
             Application.OpenURL("market://details?id="+Application.identifier);
+            onComplete?.Invoke();
+            RatedDispatch();
         }
 
         public override void Dispose() { }
