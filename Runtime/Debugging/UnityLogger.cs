@@ -15,7 +15,6 @@ namespace GameKit
         public bool IsErrorAllowed { get; private set; }
         
         [EditorBrowsable(EditorBrowsableState.Never)]
-        [MethodImpl(MethodImplOptions.InternalCall)]
         public void Debug(string message)
         {
             if (IsDebugAllowed)
@@ -23,7 +22,6 @@ namespace GameKit
         }
 
         [EditorBrowsable(EditorBrowsableState.Never)]
-        [MethodImpl(MethodImplOptions.InternalCall)]
         public void Info(string message)
         {
             if (IsInfoAllowed)
@@ -31,7 +29,6 @@ namespace GameKit
         }
 
         [EditorBrowsable(EditorBrowsableState.Never)]
-        [MethodImpl(MethodImplOptions.InternalCall)]
         public void Warning(string message)
         {
             if (IsWarningAllowed)
@@ -39,7 +36,6 @@ namespace GameKit
         }
 
         [EditorBrowsable(EditorBrowsableState.Never)]
-        [MethodImpl(MethodImplOptions.InternalCall)]
         public void Error(string message)
         {
             if (IsErrorAllowed)
@@ -47,7 +43,6 @@ namespace GameKit
         }
 
         [EditorBrowsable(EditorBrowsableState.Never)]
-        [MethodImpl(MethodImplOptions.InternalCall)]
         public void Error(Exception exception)
         {
             if (IsErrorAllowed)
