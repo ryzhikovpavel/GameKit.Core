@@ -2,9 +2,7 @@
     "name": "GameKit.Core",
     "rootNamespace": "",
     "references": [
-        "Google.Android.AppBundle.Editor",
         "Google.Play.Common",
-        "Google.Play.Core",
         "Google.Play.Review",
         "Unity.TextMeshPro"
     ],
