@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
@@ -13,34 +14,44 @@ namespace GameKit
         public bool IsWarningAllowed { get; private set; }
         public bool IsErrorAllowed { get; private set; }
         
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [MethodImpl(MethodImplOptions.InternalCall)]
         public void Debug(string message)
         {
-            UnityEngine.Debug.Log($"{_environment}|{message}");
+            if (IsDebugAllowed)
+                UnityEngine.Debug.Log($"{_environment}|{message}");
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [MethodImpl(MethodImplOptions.InternalCall)]
         public void Info(string message)
         {
-            UnityEngine.Debug.Log($"{_environment}|{message}");
+            if (IsInfoAllowed)
+                UnityEngine.Debug.Log($"{_environment}|{message}");
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [MethodImpl(MethodImplOptions.InternalCall)]
         public void Warning(string message)
         {
-            UnityEngine.Debug.LogWarning($"{_environment}|{message}");
+            if (IsWarningAllowed)
+                UnityEngine.Debug.LogWarning($"{_environment}|{message}");
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [MethodImpl(MethodImplOptions.InternalCall)]
         public void Error(string message)
         {
-            UnityEngine.Debug.LogError($"{_environment}|{message}");
+            if (IsErrorAllowed)
+                UnityEngine.Debug.LogError($"{_environment}|{message}");
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [MethodImpl(MethodImplOptions.InternalCall)]
         public void Error(Exception exception)
         {
-            UnityEngine.Debug.LogException(exception);
+            if (IsErrorAllowed)
+                UnityEngine.Debug.LogException(exception);
         }
 
         public void SetAllowed(LogType allowed)
