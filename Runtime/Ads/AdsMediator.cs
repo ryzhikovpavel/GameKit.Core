@@ -180,7 +180,7 @@ namespace GameKit.Ads
             Dictionary<TaskRoutine, IAdsNetwork> routines = new Dictionary<TaskRoutine, IAdsNetwork>();
             var intrusiveAdUnits = !_session.Get().disableIntrusiveAdUnits;
             if (Logger<AdsMediator>.IsDebugAllowed)
-                Logger<AdsMediator>.Debug($"Initialize networks with args [disableIntrusiveAdUnits: {intrusiveAdUnits}]");
+                Logger<AdsMediator>.Debug($"Initialize networks with args [IntrusiveAdUnits: {intrusiveAdUnits}]");
             foreach (IAdsNetwork network in _networks)
             {
                 routines.Add(network.Initialize(false, intrusiveAdUnits), network); //TODO fix tracking consent
