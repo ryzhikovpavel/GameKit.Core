@@ -9,7 +9,7 @@ namespace GameKit.Editor.Tools
         [MenuItem("GameKit/Folders/Open persistent folder")]
         public static void OpenPersistentFolder()
         {
-            Application.OpenURL(Application.persistentDataPath);
+            EditorUtility.RevealInFinder(Application.persistentDataPath);
         }
     }
 }

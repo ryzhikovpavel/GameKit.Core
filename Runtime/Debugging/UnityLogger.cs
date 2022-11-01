@@ -14,35 +14,30 @@ namespace GameKit
         public bool IsWarningAllowed { get; private set; }
         public bool IsErrorAllowed { get; private set; }
         
-        [EditorBrowsable(EditorBrowsableState.Never)]
         public void Debug(string message)
         {
             if (IsDebugAllowed)
                 UnityEngine.Debug.Log($"{_environment}|{message}");
         }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
+        
         public void Info(string message)
         {
             if (IsInfoAllowed)
                 UnityEngine.Debug.Log($"{_environment}|{message}");
         }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
+        
         public void Warning(string message)
         {
             if (IsWarningAllowed)
                 UnityEngine.Debug.LogWarning($"{_environment}|{message}");
         }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
+        
         public void Error(string message)
         {
             if (IsErrorAllowed)
                 UnityEngine.Debug.LogError($"{_environment}|{message}");
         }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
+        
         public void Error(Exception exception)
         {
             if (IsErrorAllowed)
