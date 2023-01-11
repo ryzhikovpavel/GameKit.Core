@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using GameKit.Internal;
 
 namespace GameKit
@@ -108,15 +109,16 @@ namespace GameKit
             IsPaused = !focus;
         }
 
-        private static void OnApplicationEventQuit()
+        private static async void OnApplicationEventQuit()
         {
             if (IsPaused == false) EventSuspend();
             IsPaused = true;
             IsQuitting = true;
             EventQuit();
+            await Task.Yield();
+            
             EventDispose();
             UnityRuntimeTokenSource.Cancel();
-
             Dispose();
         }
 
