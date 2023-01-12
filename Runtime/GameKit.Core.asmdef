@@ -1,6 +1,6 @@
 {
     "name": "GameKit.Core",
-    "rootNamespace": "",
+    "rootNamespace": "GameKit",
     "references": [
         "Google.Play.Common",
         "Google.Play.Review",

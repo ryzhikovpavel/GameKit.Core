@@ -1,67 +1,92 @@
 ﻿using System;
+using JetBrains.Annotations;
 using UnityEngine;
 
+// ReSharper disable once CheckNamespace
 namespace GameKit
 {
-    public interface IStateContext
-    {
-        void TransitionTo(IGameState state);
-    }
+    public delegate void EventStateChangedDelegate(State state);
     
-    public delegate void EventStateChangedDelegate(IGameState state);
-    
-    public class StateContext : IStateContext
+    [PublicAPI]
+    public class StateContext: IDisposable
     {
         private Action _sequenceComplete;
-        private IGameState _currentState;
+        private State _current;
 
-        public event EventStateChangedDelegate EventStateStarted = delegate { };
-        public event EventStateChangedDelegate EventStateStopped = delegate { };
+        public event EventStateChangedDelegate EventStateInitialize;
+        public event EventStateChangedDelegate EventStateStarted;
+        public event EventStateChangedDelegate EventStateStopped;
+        public event Action EventContextExit;
+        public State Current => _current;
         
-        public IGameState CurrentState => _currentState;
-        
-        public bool IsCurrent<T>()
+        public bool CurrentStateIs<T>()
         {
-            return _currentState is T;
+            return _current is T;
         }
 
-        public void TransitionTo<T>() where T : IGameState, new()
-        {
-            TransitionTo(new T());
-        }
-        
-        public void TransitionTo(IGameState state)
+        public void ChangeTo(State state)
         {
             if (state == null) throw new NullReferenceException("State cannot be null");
             state.Context = this;
-            TransitionProcess(_currentState, state);
+            TransitionProcess(state);
+        }
+
+        public async void Exit()
+        {
+            if (_current is not null)
+            {
+                try
+                {
+                    State c = _current;
+                    _current = null;
+                    await c.Exit();
+                    c.Release();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e);
+                }
+            }
+            
+            EventContextExit?.Invoke();
         }
         
-        private void TransitionProcess(IGameState from, IGameState to)
+        private async void TransitionProcess(State to)
         {
-            if (from is IGameStateUpdate updateState1)
-                Loop.EventUpdate -= updateState1.OnUpdate;
-            
-            if (from is IGameStateStop stopState)
+            try
             {
-                if (Debug.isDebugBuild) Debug.Log($"State {from.GetType().Name} OnExit");
-                stopState.OnStop();
+                if (_current is not null)
+                {
+                    await _current.Exit(); 
+                    EventStateStopped?.Invoke(_current);
+                    _current.Release();
+                }
+
+                _current = to;
+                _current.Initialize();
+                EventStateInitialize?.Invoke(_current);
+                _current.Enter();
+                EventStateStarted?.Invoke(_current);
             }
-            
-            if (from != null) EventStateStopped(from);
-
-            _currentState = to;
-
-            if (to is IGameStateStart startState)
+            catch (Exception e)
             {
-                if (Debug.isDebugBuild) Debug.Log($"State {to.GetType().Name} OnEnter");
-                startState.OnStart();
+                Debug.LogError(e);
             }
-            
-            if (to is IGameStateUpdate updateState2)
-                Loop.EventUpdate += updateState2.OnUpdate;
+        }
 
-            EventStateStarted(to);
+        public StateContext()
+        {
+            Loop.EventDispose += Dispose;
+        }
+        
+        public void Dispose()
+        {
+            if (Current is not null)
+            {
+                State c = _current;
+                _current = null;
+                c.Release();
+            }
         }
     }
 }

@@ -36,25 +36,25 @@ namespace GameKit
 
         public static void ShowObject(this GameObject gameObject)
         {
-            if (gameObject is null) return;
+            if (gameObject == null) return;
             gameObject.SetActive(true);
         }
 
         public static void ShowObject<T>(this T component) where T: Component
         {
-            if (component is null) return;
+            if (component == null) return;
             component.gameObject.SetActive(true);
         }
 
         public static void HideObject(this GameObject gameObject)
         {
-            if (gameObject is null) return;
+            if (gameObject == null) return;
             gameObject.SetActive(false);
         }
 
         public static void HideObject<T>(this T component) where T : Component
         {
-            if (component is null) return;
+            if (component == null) return;
             component.gameObject.SetActive(false);
         }
 
