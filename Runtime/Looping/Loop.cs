@@ -109,14 +109,12 @@ namespace GameKit
             IsPaused = !focus;
         }
 
-        private static async void OnApplicationEventQuit()
+        private static void OnApplicationEventQuit()
         {
             if (IsPaused == false) EventSuspend();
             IsPaused = true;
             IsQuitting = true;
             EventQuit();
-            await Task.Yield();
-            
             EventDispose();
             UnityRuntimeTokenSource.Cancel();
             Dispose();

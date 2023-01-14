@@ -30,6 +30,7 @@ namespace GameKit.Ads
         public event AdsEventHandler EventSkipped = delegate { };
         public bool UseMockInDebugBuild { get; set; }
         public bool IsInitialized { get; set; }
+        public int RelevantAdsConsent => _session.Get().relevantAdsConsent;
         
         public void RegisterPlacement(AdsPlacement placement)
         {
@@ -94,6 +95,13 @@ namespace GameKit.Ads
             _displayProcessors[typeof(TUnitType)] = processor;
         }
 
+        public void SetupRelevantAdsConsent(bool granted)
+        {
+            AdsSession s = _session.Get();
+            s.relevantAdsConsent = granted ? 1 : -1;
+            _session.Save(s);
+        }
+        
         public void EnableIntrusiveAdUnits()
         {
             if (Logger<AdsMediator>.IsDebugAllowed) 
@@ -160,6 +168,12 @@ namespace GameKit.Ads
             if (Logger<AdsMediator>.IsDebugAllowed) 
                 Logger<AdsMediator>.Debug($"service initializing");
             
+            if ((Logger<AdsMediator>.IsDebugAllowed || Application.isEditor) && RelevantAdsConsent == 0)
+                Logger<AdsMediator>.Debug($"waiting relevant ads consent");
+
+            while (RelevantAdsConsent == 0)
+                yield return null;
+            
             if (UseMockInDebugBuild && Debug.isDebugBuild)
             {
                 _networks = new List<IAdsNetwork>(1) { new MockAdsNetwork() };
@@ -183,7 +197,7 @@ namespace GameKit.Ads
                 Logger<AdsMediator>.Debug($"Initialize networks with args [IntrusiveAdUnits: {intrusiveAdUnits}]");
             foreach (IAdsNetwork network in _networks)
             {
-                routines.Add(network.Initialize(false, intrusiveAdUnits), network); //TODO fix tracking consent
+                routines.Add(network.Initialize(RelevantAdsConsent == 1, intrusiveAdUnits), network);
             }
 
             bool initialized = false;

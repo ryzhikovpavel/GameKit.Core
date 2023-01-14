@@ -6,5 +6,6 @@ namespace GameKit.Ads
     public struct AdsSession
     {
         public bool disableIntrusiveAdUnits;
+        public int relevantAdsConsent;
     }
 }
