@@ -9,8 +9,8 @@ namespace GameKit.Ads.Networks.LocalNetwork
     public class LocalNetwork: IAdsNetwork
     {
         private readonly Dictionary<Type, IAdUnit[]> _units = new Dictionary<Type,  IAdUnit[]>();
-        private readonly LocalAdUnitData[] _interstitialData;
-        private readonly LocalAdUnitData[] _bannerData;
+        private LocalAdUnitData[] _interstitialData;
+        private LocalAdUnitData[] _bannerData;
 
         public TaskRoutine Initialize(bool trackingConsent, bool intrusiveAdUnits)
         {
@@ -47,11 +47,17 @@ namespace GameKit.Ads.Networks.LocalNetwork
         public bool IsSupported(Type type) => _units.ContainsKey(type);
         public IAdUnit[] GetUnits(Type type) => _units[type];
 
-        public LocalNetwork(LocalNetworkConfig config)
+        private LocalNetwork()
         {
-            _interstitialData = config.interstitials;
-            _bannerData = config.banners;
-            Service<AdsMediator>.Instance.RegisterNetwork(this);
+            
+        }
+        
+        public static void Initialize(LocalNetworkConfig config)
+        {
+            var network = new LocalNetwork();
+            network._interstitialData = config.interstitials;
+            network._bannerData = config.banners;
+            Service<AdsMediator>.Instance.RegisterNetwork(network);
         }
 
         private IEnumerator WaitAndSetupAdUnit(LocalAdUnitData[] ads, LocalAdUnit unit)
